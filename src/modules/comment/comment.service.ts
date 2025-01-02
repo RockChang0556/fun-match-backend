@@ -59,7 +59,9 @@ export class CommentService {
       ...comment,
       creatorId: user.id,
     });
-    return result.Mapper(CommentCreateSuccessViewDto);
+    return result.Mapper(
+      CommentCreateSuccessViewDto,
+    ) as CommentCreateSuccessViewDto;
   }
 
   async delete(id: string): Promise<void | CommentViewDto> {
@@ -77,13 +79,13 @@ export class CommentService {
       comment.state = EState.SoftDeleted;
       comment.content = '评论已被删除';
       await this.commentRepository.save(comment);
-      return comment.Mapper();
+      return comment.Mapper() as CommentViewDto;
     } else {
       await this.commentRepository.remove(comment);
       return null;
     }
   }
-  async getList(commentQueryDto: CommentQueryDto): Promise<CommentListViewDto> {
+  async getList(commentQueryDto: CommentQueryDto): Promise<any> {
     const { relationId, relationType } = commentQueryDto;
     const [comments, total] = await this.commentRepository.findAndCount({
       where: { relationId, relationType },

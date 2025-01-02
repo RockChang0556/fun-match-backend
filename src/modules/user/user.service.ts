@@ -159,7 +159,7 @@ export class UserService {
   async getInfo(id: string): Promise<UserInfoDto> {
     const user = await this.findOneById(id);
     if (user) {
-      return user.Mapper(UserInfoDto);
+      return user.Mapper(UserInfoDto) as UserInfoDto;
     } else {
       throw new NotFoundException('用户不存在');
     }

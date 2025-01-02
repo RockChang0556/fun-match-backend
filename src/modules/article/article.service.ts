@@ -92,7 +92,7 @@ export class ArticleService {
         where: { id },
         relations: ['creator', 'category'],
       })
-    ).Mapper(ArticleViewDto);
+    ).Mapper(ArticleViewDto) as ArticleEntity;
     // return await this.articleRepository.findOneWithAutoMapper({
     //   where: { id },
     //   relations: ['creator', 'category'],

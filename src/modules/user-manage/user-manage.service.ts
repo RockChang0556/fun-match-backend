@@ -40,7 +40,7 @@ export class UserManageService {
   async getList(
     paginationParams: IPaginationParams,
     queryParams: UserManageQueryDto,
-  ): Promise<IPaginationResult<UserManageInfoDto>> {
+  ): Promise<any> {
     const pagination = new PaginationDto(paginationParams);
     const { nickName, userName, state, role } = queryParams;
     pagination.where = [

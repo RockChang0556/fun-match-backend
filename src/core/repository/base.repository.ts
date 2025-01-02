@@ -151,12 +151,12 @@ export class BaseDefaultRepository<
 
   async findOneWithMapper(options: FindOneOptions): Promise<T> {
     const result = await this.findOne(options);
-    return AutoMapper.MapperTo(result);
+    return AutoMapper.MapperTo(result) as T;
   }
 
   async findWithMapper(options: FindManyOptions): Promise<T[]> {
     const result = await this.find(options);
-    return AutoMapper.MapperTo(result);
+    return AutoMapper.MapperTo(result) as T[];
   }
 
   async paginateWithMapper(
@@ -171,7 +171,9 @@ export class BaseDefaultRepository<
         option,
       )) as IPaginationResult<T>;
       return {
-        items: AutoMapper.MapperTo(result.items),
+        items: AutoMapper.MapperTo(
+          result.items,
+        ) as IPaginationResult<T>['items'],
         total: result.total,
       };
     }
