@@ -37,16 +37,16 @@ export class Roles {
   @UpdateDateColumn({ comment: '更新时间' }) // 自动生成并自动更新列
   updatetime: string;
 
-  @ManyToMany(() => User, (user) => user.roles)
+  @ManyToMany(() => User, user => user.roles)
   users: User;
 
-  @ManyToMany(() => Permission, (permission) => permission.roles)
+  @ManyToMany(() => Permission, permission => permission.roles)
   @JoinTable({
     name: 'roles_permission',
   })
   permissions: Permission[];
 
-  @ManyToMany(() => Resources, (resources) => resources.roles)
+  @ManyToMany(() => Resources, resources => resources.roles)
   @JoinTable({
     name: 'roles_resources',
   })

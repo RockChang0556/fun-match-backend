@@ -7,7 +7,7 @@ import { PermissionDto } from './dto/permission.dto';
 @Injectable()
 export class PermissionService {
   constructor(
-    @InjectRepository(Permission) private readonly permissionRepository: Repository<Permission>
+    @InjectRepository(Permission) private readonly permissionRepository: Repository<Permission>,
   ) {}
 
   /**

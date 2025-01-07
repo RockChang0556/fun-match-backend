@@ -20,7 +20,7 @@ export class LoggersController {
   @ApiOperation({ summary: '获取所有日志' })
   findAll(
     @Query('pageNum', ParseIntPipe) pageNum: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number
+    @Query('pageSize', ParseIntPipe) pageSize: number,
   ) {
     return this.loggersService.findAll(pageNum, pageSize);
   }

@@ -20,7 +20,7 @@ interface ResBody<T> {
 export class ResponseInterceptor<T> implements NestInterceptor<T, ResBody<T>> {
   intercept(
     context: ExecutionContext,
-    next: CallHandler<T>
+    next: CallHandler<T>,
   ): Observable<ResBody<T>> | Promise<Observable<ResBody<T>>> {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest<Request>();
@@ -37,7 +37,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ResBody<T>> {
           data: data,
           message: 'success',
         };
-      })
+      }),
     );
   }
 }

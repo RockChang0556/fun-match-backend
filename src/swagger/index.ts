@@ -10,11 +10,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
  */
 export const setupSwagger = (app: NestExpressApplication) => {
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('后台管理系统')
-    .setDescription('nest-tmplate-cms 接口文档')
+    .setTitle('畅搭配')
+    .setDescription('畅搭配 接口文档 https://github.com/RockChang0556/fun-match-backend')
     .setVersion('v0.0.1')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/swagger', app, document);
+  SwaggerModule.setup('api', app, document);
 };

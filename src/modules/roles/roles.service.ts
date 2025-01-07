@@ -12,7 +12,7 @@ import { RolesDto } from './dto/roles.dto';
 export class RolesService {
   constructor(
     @InjectRepository(Roles) private readonly rolesRepository: Repository<Roles>,
-    @InjectRepository(Resources) private readonly resourcesRepository: Repository<Resources>
+    @InjectRepository(Resources) private readonly resourcesRepository: Repository<Resources>,
   ) {}
 
   /**

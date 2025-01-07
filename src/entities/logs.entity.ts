@@ -28,7 +28,7 @@ export class Logs {
   @CreateDateColumn({ comment: '创建时间' })
   createtime: string;
 
-  @ManyToOne(() => User, (user) => user.logs)
+  @ManyToOne(() => User, user => user.logs)
   @JoinColumn({ name: 'users_logs' })
   user: User;
 }

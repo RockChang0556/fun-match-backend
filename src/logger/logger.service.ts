@@ -53,7 +53,7 @@ export class AppLoggerService implements LoggerService {
           format: format.combine(
             format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             logFormat(true),
-            myFormat
+            myFormat,
           ), // 格式化info消息
         }), // 控制台输出日志
         new transports.DailyRotateFile({
@@ -77,7 +77,7 @@ export class AppLoggerService implements LoggerService {
           format: format.combine(
             format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             logFormat(false),
-            myFormat
+            myFormat,
           ),
         }), // 文件输出info日志
       ], // 设置info消息的日志输出位置

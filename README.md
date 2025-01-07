@@ -106,7 +106,7 @@
 - swagger:
   - 开发启动在 {local-service}/api
   - api-json在 {local-service}/api-json
-- ApiFox : https://apifox.com/apidoc/shared-3a33fc33-9bf0-4554-a6ad-5d4b7c22650c
+- ApiFox : https://fun-match.apifox.cn/
 
 ## 🚥 TODO
 

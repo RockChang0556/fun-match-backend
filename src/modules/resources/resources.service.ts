@@ -11,7 +11,7 @@ import { ResourcesDto } from './dto/resources.dto';
 export class ResourcesService {
   constructor(
     @InjectRepository(Resources) private readonly resourcesRepository: Repository<Resources>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   /**
@@ -80,7 +80,7 @@ export class ResourcesService {
       .getOne();
 
     const menus = userMenuList?.roles.reduce((mergedMenus, role) => {
-      role.resources.forEach((menu) => {
+      role.resources.forEach(menu => {
         mergedMenus[menu.id] = menu;
       });
       return mergedMenus;

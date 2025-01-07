@@ -48,6 +48,6 @@ export class Resources {
   @UpdateDateColumn({ comment: '更新时间' }) //自动生成并自动更新列
   updatetime: string;
 
-  @ManyToMany(() => Roles, (roles) => roles.resources, { cascade: true })
+  @ManyToMany(() => Roles, roles => roles.resources, { cascade: true })
   roles: Roles[];
 }

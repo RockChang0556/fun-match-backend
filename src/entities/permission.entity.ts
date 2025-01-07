@@ -32,6 +32,6 @@ export class Permission {
   @UpdateDateColumn({ comment: '更新时间' })
   updatetime: Date;
 
-  @ManyToMany(() => Roles, (roles) => roles.permissions)
+  @ManyToMany(() => Roles, roles => roles.permissions)
   roles: Roles[];
 }
