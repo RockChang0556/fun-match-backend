@@ -5,7 +5,6 @@ import { resolve } from '@/utils';
 
 // 获取数据库配置
 const dbConfig = config.get('db');
-console.log('[ rock-dbConfig ]', dbConfig);
 
 // 获取实体类
 const entities = [resolve('dist') + '/**/*.entity{.ts,.js}']; // 生产环境这里一定要注意是dist目录，否则会报连接异常

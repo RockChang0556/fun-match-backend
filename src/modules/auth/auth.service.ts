@@ -8,7 +8,7 @@ import { AuthUserDto } from './dto/auth.dto';
 export class AuthService {
   constructor(
     private userService: UserService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   /**

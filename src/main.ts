@@ -15,7 +15,7 @@ async function bootstrap() {
   const logger = new AppLoggerService(); // 实例化日志对象
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    // logger: logger, // 替换默认的log日志
+    logger: logger, // 替换默认的log日志
     cors: true, // 允许跨域
   });
 
@@ -26,7 +26,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, //如果设置为 true，验证程序将除去未使用任何装饰器的属性的已验证对象
-    })
+    }),
   );
 
   // 设置swagger文档
@@ -40,7 +40,6 @@ async function bootstrap() {
   // 设置全局拦截器
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  console.log('[ rock- ]', process.env.PORT, config);
   const port = process.env.PORT || config.port;
 
   await app.listen(port, () => {

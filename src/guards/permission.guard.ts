@@ -7,7 +7,7 @@ import { UserService } from '@/modules/user/user.service';
 export class PermissionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private userServicese: UserService
+    private userServicese: UserService,
   ) {}
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     // console.log('角色守卫');

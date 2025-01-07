@@ -13,7 +13,7 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Roles) private readonly rolesRepository: Repository<Roles>
+    @InjectRepository(Roles) private readonly rolesRepository: Repository<Roles>,
   ) {}
 
   /**
@@ -202,7 +202,7 @@ export class UserService {
     }
 
     const roles = user.roles;
-    const menus = user.roles.flatMap((role) => role.resources);
+    const menus = user.roles.flatMap(role => role.resources);
     if (!roles.length) {
       throw new ForbiddenException('非法用户，无法访问');
     }
@@ -234,15 +234,15 @@ export class UserService {
       throw new BadRequestException('用户已经被禁用');
     }
 
-    const roleIds = user.roles.map((itme) => itme.id);
+    const roleIds = user.roles.map(itme => itme.id);
     if (!roleIds.length) {
       throw new ForbiddenException('无权访问');
     }
 
-    const permissions = user.roles.flatMap((role) => role.permissions);
-    const permissionNames = permissions.map((item) => item.permName);
+    const permissions = user.roles.flatMap(role => role.permissions);
+    const permissionNames = permissions.map(item => item.permName);
 
-    const isPermission = permissionList.every((item) => permissionNames.includes(item));
+    const isPermission = permissionList.every(item => permissionNames.includes(item));
     if (!isPermission) {
       throw new ForbiddenException('权限不足');
     }

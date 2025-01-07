@@ -35,7 +35,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       this.appLoggerService.error(
         `${request.url},${request.method},${request.ip},${exception.stack}`,
         exception.stack,
-        'ExceptionResponse'
+        'ExceptionResponse',
       );
     }
 
