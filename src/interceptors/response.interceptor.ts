@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { map, Observable } from 'rxjs';
+import { timestampFormat } from '@/utils/format';
 
 /**
  * 响应体
@@ -35,6 +36,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ResBody<T>> {
         return {
           code: 0,
           data: data,
+          timestamp: timestampFormat(),
           message: 'success',
         };
       }),

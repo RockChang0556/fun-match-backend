@@ -1,12 +1,19 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  LoggerService,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AppLoggerService } from '@/logger/logger.service';
+import { timestampFormat } from '@/utils/format';
 
 // 全局异常过滤器处理
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   // 注入日志服务相关依赖
-  constructor(private readonly appLoggerService: AppLoggerService) {}
+  constructor(private readonly appLoggerService: LoggerService) {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
     this.appLoggerService.warn('进入全局异常过滤器', 'ExceptionResponse');
@@ -26,6 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const resBody = {
       code: status, // 系统错误状态
       data: null, // 错误消息内容体(争取和拦截器中定义的响应体一样)
+      timestamp: timestampFormat(),
       ...message,
     };
 

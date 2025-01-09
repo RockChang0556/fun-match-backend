@@ -86,16 +86,14 @@
 ```
 |config # 配置
 |const # 常量
-|core # 基类及扩展仓储
 |decorators # 装饰器 （参数封装，Dto装饰器）
+|entities # 数据模型
 |exception # 统一错误处理
-|filters # 错误过滤
+|filters # 过滤器 全局异常处理
 |guards # 守卫 认证,角色，csrf
 |interceptors # 拦截器 处理request及response，csrf
 |modules # 业务模块
-|plugins  # 插件
-|schedule-task # 定时任务
-|swagger  # swagger文档配置
+|plugins  # 插件 日志,swagger,校验等
 |utils # 工具方法
 |main.ts # 入口
 |app.module.ts # 根module

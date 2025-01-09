@@ -13,3 +13,7 @@ db:
 # jwt配置
 jwt:
   secret: 'Tara$0729_Queens' # jwt密匙
+
+# swagger接口文档配置
+swagger:
+  enable: false # 是否打开swagger接口文档
