@@ -4,7 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from '@/config/winston.config';
-import { ConfigEnum } from './enum/config.enum';
+import { ConfigEnum } from '@/constants/enum/config.enum';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { PermissionGuard } from './guards/permission.guard';
 import { AuthModule } from './modules/auth/auth.module';

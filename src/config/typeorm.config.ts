@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import * as config from 'config';
-import { ConfigEnum } from '@/enum/config.enum';
+import { ConfigEnum } from '@/constants/enum/config.enum';
 import { resolve } from '@/utils';
 
 // 获取数据库配置

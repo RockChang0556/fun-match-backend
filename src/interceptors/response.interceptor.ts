@@ -6,7 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { timestampFormat } from '@/utils/format';
 
 /**
@@ -39,6 +39,10 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ResBody<T>> {
           timestamp: timestampFormat(),
           message: 'success',
         };
+      }),
+      catchError(error => {
+        // 直接抛出异常，用error.filter处理
+        throw error;
       }),
     );
   }

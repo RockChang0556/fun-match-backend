@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NoAuth } from '@/decorators/noAuth.decorator';
-import { AuthUserDto } from './dto/auth.dto';
+import { AuthPhoneUserDto, AuthUserDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -11,10 +11,17 @@ export class AuthController {
 
   @Post('/signin')
   @NoAuth('ALL')
-  @ApiOperation({ summary: '用户登录' })
+  @ApiOperation({ summary: '用户登录-账号密码' })
   async signin(@Body() dto: AuthUserDto) {
-    const userInfo = await this.authService.signin(dto);
+    const userInfo = await this.authService.loginByPassword(dto);
     return userInfo;
+  }
+
+  @Post('/login-phone')
+  @NoAuth('ALL')
+  @ApiOperation({ summary: '用户登录-手机验证码' })
+  loginByPhone(@Body() dto: AuthPhoneUserDto) {
+    return this.authService.loginByPhone(dto.phone, dto.code);
   }
 
   @Post('/signup')

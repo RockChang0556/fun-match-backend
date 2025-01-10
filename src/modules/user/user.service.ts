@@ -4,6 +4,8 @@ import * as bcrypt from 'bcryptjs';
 import { In, Repository } from 'typeorm';
 import { Roles } from '@/entities/roles.entity';
 import { User } from '@/entities/user.entity';
+import { CustomException } from '@/exception/custom-exception';
+// import { CryptoUtil } from '@/utils/crypto.util';
 import { conditionUtils } from '@/utils/db.helper';
 import { CreateUserDto } from './dto/createUser.dto';
 import { GetUserDto } from './dto/getUser.dto';
@@ -23,14 +25,15 @@ export class UserService {
    * @return 创建结果
    */
   async create(userDto: Partial<CreateUserDto>, userLogin?: User) {
+    console.log('[ rock-userLogin ]', userLogin);
     // 判断用户是否有权限创建新用户
-    if (userLogin?.userType !== 0 && userLogin?.userType !== 1) {
-      // 登录用户既不是超级管理员，又不是管理员，无法创建任何用户
-      throw new ForbiddenException('你没有权限创建该类型的用户');
-    } else if (userLogin?.userType !== 0 && userLogin?.userType >= userDto.userType) {
-      // 登录用户不是超级管理员，无法创建管理员权限的用户
-      throw new ForbiddenException('你没有权限创建该类型的用户');
-    }
+    // if (userLogin?.userType !== 0 && userLogin?.userType !== 1) {
+    //   // 登录用户既不是超级管理员，又不是管理员，无法创建任何用户
+    //   throw new ForbiddenException('你没有权限创建该类型的用户');
+    // } else if (userLogin?.userType !== 0 && userLogin?.userType >= userDto.userType) {
+    //   // 登录用户不是超级管理员，无法创建管理员权限的用户
+    //   throw new ForbiddenException('你没有权限创建该类型的用户');
+    // }
 
     // 判断要创建的用户账户是否存在
     const createUser = await this.find({ username: userDto.username });
@@ -58,6 +61,25 @@ export class UserService {
     userTemp.password = await bcrypt.hash(userTemp.password, 10);
     const res = await this.userRepository.save(userTemp);
     return res;
+  }
+
+  /**
+   * 使用手机号创建用户
+   * @param phone 手机号
+   * @returns user
+   */
+  async createUserByPhone(phone: string): Promise<User> {
+    const samePhoneUser = await this.findOneByPhone(phone);
+
+    if (samePhoneUser) {
+      throw new CustomException('手机号已存在');
+    } else {
+      // const encrypted = CryptoUtil.encryptNoIV(phone);
+      const encodePhone = phone;
+      const user = this.userRepository.create({ phone: encodePhone });
+      await this.userRepository.save(user);
+      return user;
+    }
   }
 
   /**
@@ -107,6 +129,20 @@ export class UserService {
    */
   find({ username, id }: { username?: string; id?: number }) {
     return this.userRepository.findOne({ where: { username, id } });
+  }
+
+  /**
+   * 根据手机号获取用户信息
+   * @param {string} phone 手机号
+   * @return 用户信息
+   */
+  findOneByPhone(phone: string) {
+    if (!phone) {
+      throw new BadRequestException('手机号不能为空');
+    }
+    // const encodePhone = CryptoUtil.encryptNoIV(phone);
+    const encodePhone = phone;
+    return this.userRepository.findOne({ where: { phone: encodePhone } });
   }
 
   /**
@@ -193,12 +229,12 @@ export class UserService {
 
     // 判断用户是否存在
     if (!user) {
-      throw new BadRequestException('用户不存在');
+      throw new ForbiddenException('用户不存在');
     }
 
     // 判断用户是否被禁用
-    if (!user.status) {
-      throw new BadRequestException('用户已经被禁用');
+    if (!this.IsEnable(user)) {
+      throw new ForbiddenException('用户已经被禁用');
     }
 
     const roles = user.roles;
@@ -230,7 +266,7 @@ export class UserService {
     }
 
     // 判断用户是否被禁用
-    if (!user.status) {
+    if (!this.IsEnable(user)) {
       throw new BadRequestException('用户已经被禁用');
     }
 
@@ -248,5 +284,14 @@ export class UserService {
     }
 
     return true;
+  }
+
+  /**
+   *  检测用户是否使用
+   * @param user 用户
+   * @returns
+   */
+  IsEnable(user: User): boolean {
+    return user && user.status;
   }
 }

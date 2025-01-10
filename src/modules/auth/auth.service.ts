@@ -1,6 +1,10 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { User } from '@/entities/user.entity';
+import { AuthDisableException, AuthValidFailException } from '@/exception/custom-exception';
+import { EVerifyCodeType } from '@/modules/verify-code/verify-code.enum';
+import { VerifyCodeService } from '@/modules/verify-code/verify-code.service';
 import { UserService } from '../user/user.service';
 import { AuthUserDto } from './dto/auth.dto';
 
@@ -9,14 +13,15 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private verifyCodeService: VerifyCodeService,
   ) {}
 
   /**
-   * @description: 用户登录
+   * 账号密码登录
    * @param {AuthUserDto} dto 登录信息，包含用户名和密码
    * @return 登录结果
    */
-  async signin(dto: AuthUserDto) {
+  async loginByPassword(dto: AuthUserDto) {
     const { username, password } = dto;
 
     // 获取登录用户的信息
@@ -52,6 +57,72 @@ export class AuthService {
       user: userData,
       token,
     };
+  }
+
+  /**
+   *  手机验证码登录
+   * @param phone 手机号
+   * @param code  验证码
+   * @param registerWhenNotExist
+   * @returns
+   */
+  async loginByPhone(
+    phone: string,
+    code: string,
+    registerWhenNotExist: boolean = true,
+  ): Promise<User | null> {
+    const valid = await this.verifyCodeService.verify({
+      phone,
+      type: EVerifyCodeType.LOGIN,
+      code,
+    });
+    if (valid) {
+      const user = await this.userService.findOneByPhone(phone);
+      if (user) {
+        // 检查用户状态
+        if (this.userService.IsEnable(user)) {
+          return user;
+        } else {
+          throw new AuthDisableException();
+        }
+      } else if (registerWhenNotExist) {
+        return await this.userService.createUserByPhone(phone);
+      } else {
+        throw new AuthValidFailException();
+      }
+    }
+    return null;
+  }
+
+  /**
+   *  微信登录
+   * @param {string} code
+   * @param {boolean} registerWhenNotExist 是否在用户不存在时注册
+   */
+  async loginByWechat(code: string, registerWhenNotExist: boolean = true) {
+    console.log('[ rock-registerWhenNotExist ]', registerWhenNotExist);
+    return this.userService.findOneByPhone(code);
+    // const result = await this.wechatAuthService.getWechatOAuth(code);
+    // if (isWechatOAuthFailure(result)) {
+    //   throw new WechatException(result);
+    // } else {
+    //   const { openid, unionid } = result;
+    //   const user = await this.userService.findOneByWechat({
+    //     openid,
+    //     unionid,
+    //   });
+    //   if (user) {
+    //     if (this.userService.IsEnable(user)) {
+    //       return user;
+    //     } else {
+    //       throw new AuthDisableException();
+    //     }
+    //   } else if (registerWhenNotExist) {
+    //     return await this.userService.createUserByWechat(openid, unionid);
+    //   } else {
+    //     throw new AuthValidFailException();
+    //   }
+    // }
   }
 
   /**

@@ -2,16 +2,23 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigEnum } from '@/enum/config.enum';
+import { ConfigEnum } from '@/constants/enum/config.enum';
+import { JwtStrategy } from '@/guards/jwt.strategy';
+import { PhoneStrategy } from '@/guards/phone.strategy';
+import { WechatStrategy } from '@/guards/wechat.strategy';
+import { VerifyCodeModule } from '@/modules/verify-code/verify-code.module';
 import { UserModule } from '../user/user.module';
+import { WechatAuthModule } from './wechat-auth/wechat-auth.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
+    WechatAuthModule,
+
+    VerifyCodeModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
@@ -23,6 +30,6 @@ import { JwtStrategy } from './jwt.strategy';
     }), // 使用异步方法导入jwt模块
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, WechatStrategy, PhoneStrategy],
 })
 export class AuthModule {}
