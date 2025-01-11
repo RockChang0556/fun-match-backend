@@ -46,7 +46,7 @@ export class AuthService {
     }
 
     // 判断用户是否处于禁用状态
-    if (!res.status) {
+    if (!this.userService.IsEnable(res)) {
       throw new UnauthorizedException('您的账户已被禁用，暂时无法登录');
     }
 
@@ -63,8 +63,8 @@ export class AuthService {
    *  手机验证码登录
    * @param phone 手机号
    * @param code  验证码
-   * @param registerWhenNotExist
-   * @returns
+   * @param registerWhenNotExist 是否在用户不存在时注册
+   * @returns 登录结果
    */
   async loginByPhone(
     phone: string,
@@ -91,7 +91,7 @@ export class AuthService {
         throw new AuthValidFailException();
       }
     }
-    return null;
+    throw new AuthValidFailException('验证码错误');
   }
 
   /**

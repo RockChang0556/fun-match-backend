@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { VerifyCodeEntity } from '@/entities/verify-code.entity';
 import { CustomException } from '@/exception/custom-exception';
-import { CryptoUtil } from '@/utils/crypto.util';
+// import { CryptoUtil } from '@/utils/crypto.util';
 import { VerifyCodeCreateDto, VerifyCodeValidDto } from './dto/verify-code.dto';
 
 @Injectable()
@@ -24,7 +24,8 @@ export class VerifyCodeService {
     if (!phone || !type) {
       throw new CustomException('手机号不能为空');
     }
-    const encryptedPhone = CryptoUtil.encryptNoIV(phone);
+    // const encryptedPhone = CryptoUtil.encryptNoIV(phone);
+    const encryptedPhone = phone;
     const history = await this.verifyCodeRepository.find({
       where: {
         type,
@@ -43,6 +44,7 @@ export class VerifyCodeService {
     // TODO : 这里还需要调用具体的短信发送平台或者微信发送平台发送验证码
     const verifyCode = this.verifyCodeRepository.create({
       code,
+      type,
       phone: encryptedPhone,
     });
     await this.verifyCodeRepository.save(verifyCode);
@@ -53,24 +55,21 @@ export class VerifyCodeService {
     if (!phone || !code || !type) {
       throw new CustomException('手机号或验证码不能为空');
     }
-    if (phone && code) {
-      const encryptedPhone = CryptoUtil.encryptNoIV(phone);
-      const verifyCode = await this.verifyCodeRepository.findOne({
-        where: {
-          phone: encryptedPhone,
-          createTime: MoreThan(new Date(Date.now() - this.limitDateTime)),
-          code,
-          type,
-        },
-      });
-      if (verifyCode) {
-        this.verifyCodeRepository.remove(verifyCode);
-        return true;
-      }
-      return false;
-    } else {
-      throw new CustomException('手机号或验证码不能为空');
+    // const encryptedPhone = CryptoUtil.encryptNoIV(phone);
+    const encryptedPhone = phone;
+    const verifyCode = await this.verifyCodeRepository.findOne({
+      where: {
+        phone: encryptedPhone,
+        createTime: MoreThan(new Date(Date.now() - this.limitDateTime)),
+        code,
+        type,
+      },
+    });
+    if (verifyCode) {
+      this.verifyCodeRepository.remove(verifyCode);
+      return true;
     }
+    return false;
   }
 
   async clearExpiredCode(): Promise<void> {

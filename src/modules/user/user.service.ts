@@ -76,7 +76,12 @@ export class UserService {
     } else {
       // const encrypted = CryptoUtil.encryptNoIV(phone);
       const encodePhone = phone;
-      const user = this.userRepository.create({ phone: encodePhone });
+      const password = await bcrypt.hash(encodePhone, 10);
+      const user = this.userRepository.create({
+        phone: encodePhone,
+        username: encodePhone,
+        password,
+      });
       await this.userRepository.save(user);
       return user;
     }

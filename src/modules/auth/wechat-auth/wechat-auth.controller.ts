@@ -1,15 +1,18 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NoAuth } from '@/decorators/noAuth.decorator';
 import { CustomException } from '@/exception/custom-exception';
 import { EErrorCode } from '@/exception/exception.enum';
 import { WechatAuthService } from './wechat-auth.service';
 
 @Controller('wechat-auth')
+@ApiTags('登录注册模块')
 export class WechatAuthController {
   constructor(private readonly wechatAuthService: WechatAuthService) {}
 
-  @NoAuth('ALL')
   @Get('getAuthUrl')
+  @NoAuth('ALL')
+  @ApiOperation({ summary: '获取微信登录 url' })
   getAuthUrl(
     @Query('scope') scope,
     @Query('redirectUrl') redirectUrl,

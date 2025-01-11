@@ -60,9 +60,9 @@ export class AuthException extends CustomException {
 }
 
 export class AuthValidFailException extends CustomException {
-  constructor() {
+  constructor(message?: string) {
     super({
-      message: '登录验证失败，请检查',
+      message: message || '登录验证失败，请检查',
       code: EErrorCode.AUTH_LOGIN_FAIL,
       status: HttpStatus.UNAUTHORIZED,
     });

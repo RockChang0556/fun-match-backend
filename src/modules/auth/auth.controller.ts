@@ -20,8 +20,8 @@ export class AuthController {
   @Post('/login-phone')
   @NoAuth('ALL')
   @ApiOperation({ summary: '用户登录-手机验证码' })
-  loginByPhone(@Body() dto: AuthPhoneUserDto) {
-    return this.authService.loginByPhone(dto.phone, dto.code);
+  async loginByPhone(@Body() dto: AuthPhoneUserDto) {
+    return await this.authService.loginByPhone(dto.phone, dto.code);
   }
 
   @Post('/signup')

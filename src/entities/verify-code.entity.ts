@@ -6,17 +6,17 @@ export class VerifyCodeEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  @CreateDateColumn()
+  @CreateDateColumn({ comment: '创建时间' })
   createTime: Date;
 
-  @Column({ type: 'varchar', default: '', nullable: false })
+  @Column({ comment: '手机号', type: 'varchar', default: '', nullable: false })
   phone: string;
 
-  @Column({ type: 'varchar', default: '', nullable: false })
+  @Column({ comment: '验证码', type: 'varchar', default: '', nullable: false })
   code: string;
 
   @Column({
+    comment: '验证码类型',
     type: 'enum',
     enum: EVerifyCodeType,
     nullable: false,
