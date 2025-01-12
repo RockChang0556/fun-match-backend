@@ -5,6 +5,11 @@ import { In, Repository } from 'typeorm';
 import { Roles } from '@/entities/roles.entity';
 import { User } from '@/entities/user.entity';
 import { CustomException } from '@/exception/custom-exception';
+import {
+  IWechatUserBaseAuthInfo,
+  IWxJscode2session,
+} from '@/modules/auth/wechat-auth/wechat-auth.interface';
+import { WechatAuthService } from '@/modules/auth/wechat-auth/wechat-auth.service';
 // import { CryptoUtil } from '@/utils/crypto.util';
 import { conditionUtils } from '@/utils/db.helper';
 import { CreateUserDto } from './dto/createUser.dto';
@@ -16,6 +21,7 @@ export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Roles) private readonly rolesRepository: Repository<Roles>,
+    private wechatAuthService: WechatAuthService,
   ) {}
 
   /**
@@ -88,6 +94,27 @@ export class UserService {
   }
 
   /**
+   * 使用微信授权信息创建用户
+   * @param wxOauth  微信授权信息
+   */
+  async createUserByWechat(wxOauth: IWxJscode2session): Promise<User> {
+    console.log('[ rock-wxOauth ]', wxOauth);
+    const userInfo = await this.wechatAuthService.getWxInfo(wxOauth.openid);
+    // const userInfo = await this.wechatAuthService.getWxPhone(wxOauth.openid);
+    console.log('[ rock-userInfo ]', userInfo);
+    const password = await bcrypt.hash('123456', 10);
+    // 创建用户
+    const userTemp = this.userRepository.create({
+      username: userInfo.nickname,
+      openid: userInfo.openid,
+      password,
+      unionid: userInfo.unionid,
+    });
+    const res = await this.userRepository.save(userTemp);
+    return res;
+  }
+
+  /**
    * @description: 查询用户列表
    * @param {GetUserDto} query 查询参数
    * @return 用户列表信息
@@ -148,6 +175,15 @@ export class UserService {
     // const encodePhone = CryptoUtil.encryptNoIV(phone);
     const encodePhone = phone;
     return this.userRepository.findOne({ where: { phone: encodePhone } });
+  }
+
+  /**
+   * 根据手机号获取用户信息
+   * @param {string} phone 手机号
+   * @return 用户信息
+   */
+  findOneByWechat({ openid, unionid }: IWechatUserBaseAuthInfo) {
+    return this.userRepository.findOne({ where: { openid, unionid } });
   }
 
   /**

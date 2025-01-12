@@ -1,7 +1,7 @@
 # 启动本地服务配置
 server:
   port: 3000
-  origin: localhost
+  origin: 'localhost'
 
 # 数据库配置
 db:
@@ -11,4 +11,9 @@ db:
 
 # jwt配置
 jwt:
-  expiresIn: '4h'
+  expiresIn: '1d'
+
+# 微信小程序配置
+mp-wx:
+  appid: 'wx4e02241c758c34c0'
+  secret: 'd5328d606a31794bd166d3dbfd1b01fd'

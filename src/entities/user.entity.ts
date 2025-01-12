@@ -16,6 +16,12 @@ export class User {
   @PrimaryGeneratedColumn({ comment: '用户id' })
   id: number;
 
+  @Column({ default: null, unique: false, comment: 'wx openid' })
+  openid: string;
+
+  @Column({ default: null, unique: false, comment: 'wx unionid' })
+  unionid: string;
+
   @Column({ comment: '用户名', unique: true, nullable: false })
   username: string;
 

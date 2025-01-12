@@ -3,10 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@/entities/user.entity';
 import { AuthDisableException, AuthValidFailException } from '@/exception/custom-exception';
+import { UserService } from '@/modules/user/user.service';
 import { EVerifyCodeType } from '@/modules/verify-code/verify-code.enum';
 import { VerifyCodeService } from '@/modules/verify-code/verify-code.service';
-import { UserService } from '../user/user.service';
 import { AuthUserDto } from './dto/auth.dto';
+import { WechatAuthService } from './wechat-auth/wechat-auth.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
     private verifyCodeService: VerifyCodeService,
+    private wechatAuthService: WechatAuthService,
   ) {}
 
   /**
@@ -100,29 +102,23 @@ export class AuthService {
    * @param {boolean} registerWhenNotExist 是否在用户不存在时注册
    */
   async loginByWechat(code: string, registerWhenNotExist: boolean = true) {
-    console.log('[ rock-registerWhenNotExist ]', registerWhenNotExist);
-    return this.userService.findOneByPhone(code);
     // const result = await this.wechatAuthService.getWechatOAuth(code);
-    // if (isWechatOAuthFailure(result)) {
-    //   throw new WechatException(result);
-    // } else {
-    //   const { openid, unionid } = result;
-    //   const user = await this.userService.findOneByWechat({
-    //     openid,
-    //     unionid,
-    //   });
-    //   if (user) {
-    //     if (this.userService.IsEnable(user)) {
-    //       return user;
-    //     } else {
-    //       throw new AuthDisableException();
-    //     }
-    //   } else if (registerWhenNotExist) {
-    //     return await this.userService.createUserByWechat(openid, unionid);
-    //   } else {
-    //     throw new AuthValidFailException();
-    //   }
-    // }
+    const result = await this.wechatAuthService.getWxPhone(code);
+    console.log('[ rock-result ]', result);
+    const { openid, unionid } = result;
+    const user = await this.userService.findOneByWechat({ openid, unionid });
+    console.log('[ rock-user ]', user);
+    if (user) {
+      if (this.userService.IsEnable(user)) {
+        return user;
+      } else {
+        throw new AuthDisableException();
+      }
+    } else if (registerWhenNotExist) {
+      return await this.userService.createUserByWechat(result);
+    } else {
+      throw new AuthValidFailException();
+    }
   }
 
   /**

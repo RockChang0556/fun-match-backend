@@ -1,12 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import * as Config from 'config';
 import { AppModule } from '@/app.module';
+import { serverConfig } from '@/config';
 import { ResponseInterceptor } from '@/interceptors/response.interceptor';
 import plugins from '@/plugins';
-
-// 获取本地服务配置
-const config = Config.get('server');
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -22,11 +19,11 @@ async function bootstrap() {
 
   await plugins.install(app);
 
-  const port = process.env.PORT || config.port;
+  const port = process.env.PORT || serverConfig.port;
 
   await app.listen(port, () => {
     console.log('server run at');
-    console.log(`   - Local: http://${config.origin}:${port}`);
+    console.log(`   - Local: http://${serverConfig.origin}:${port}`);
   });
 }
 

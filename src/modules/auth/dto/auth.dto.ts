@@ -26,3 +26,10 @@ export class AuthPhoneUserDto {
   @Length(4, 6, { message: '验证码格式错误' })
   code: string;
 }
+
+export class AuthWechatUserDto {
+  @ApiProperty({ description: 'wx.login返回的code', required: true })
+  @IsString()
+  @IsNotEmpty({ message: 'code不能为空' })
+  code: string;
+}

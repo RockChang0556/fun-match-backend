@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { IWechatOAuthFailure } from '@/modules/auth/wechat-auth/wechat-auth.interface';
-import { EErrorCode } from './exception.enum';
+import { EErrorCode, WechatExceptionMap } from './exception.enum';
 import { ICustomException } from './exception.interface';
 
 // 自定义异常消息
@@ -42,9 +42,15 @@ export class WechatException extends CustomException {
   constructor(wechatError: IWechatOAuthFailure) {
     // 这里会根据微信授权失败的原因，返回适应的错误信息
     super({
-      message: '微信授权失败，请检查是否已关注公众号',
+      message: '微信授权失败，请检查',
       code: EErrorCode.WECHAT_AUTH_FAILURE,
-      data: wechatError,
+      data: {
+        errcode: wechatError.errcode,
+        errmsg:
+          wechatError.errmsg ||
+          WechatExceptionMap[wechatError.errcode] ||
+          'wx: 系统繁忙，请稍候再试',
+      },
     });
   }
 }

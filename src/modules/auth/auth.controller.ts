@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NoAuth } from '@/decorators/noAuth.decorator';
-import { AuthPhoneUserDto, AuthUserDto } from './dto/auth.dto';
+import { AuthPhoneUserDto, AuthUserDto, AuthWechatUserDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -22,6 +22,13 @@ export class AuthController {
   @ApiOperation({ summary: '用户登录-手机验证码' })
   async loginByPhone(@Body() dto: AuthPhoneUserDto) {
     return await this.authService.loginByPhone(dto.phone, dto.code);
+  }
+
+  @Post('/login-wechat')
+  @NoAuth('ALL')
+  @ApiOperation({ summary: '用户登录-微信登录' })
+  async loginByWechat(@Body() dto: AuthWechatUserDto) {
+    return await this.authService.loginByWechat(dto.code);
   }
 
   @Post('/signup')
