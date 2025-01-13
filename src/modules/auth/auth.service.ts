@@ -52,13 +52,7 @@ export class AuthService {
       throw new UnauthorizedException('您的账户已被禁用，暂时无法登录');
     }
 
-    // 生成token
-    const userData = { ...res, password: '' };
-    const token = await this.jwtService.signAsync(userData);
-    return {
-      user: userData,
-      token,
-    };
+    return await this.formatUser(res);
   }
 
   /**
@@ -68,11 +62,7 @@ export class AuthService {
    * @param registerWhenNotExist 是否在用户不存在时注册
    * @returns 登录结果
    */
-  async loginByPhone(
-    phone: string,
-    code: string,
-    registerWhenNotExist: boolean = true,
-  ): Promise<User | null> {
+  async loginByPhone(phone: string, code: string, registerWhenNotExist: boolean = true) {
     const valid = await this.verifyCodeService.verify({
       phone,
       type: EVerifyCodeType.LOGIN,
@@ -83,12 +73,13 @@ export class AuthService {
       if (user) {
         // 检查用户状态
         if (this.userService.IsEnable(user)) {
-          return user;
+          return await this.formatUser(user);
         } else {
           throw new AuthDisableException();
         }
       } else if (registerWhenNotExist) {
-        return await this.userService.createUserByPhone(phone);
+        const regUser = await this.userService.createUserByPhone(phone);
+        return await this.formatUser(regUser);
       } else {
         throw new AuthValidFailException();
       }
@@ -103,19 +94,26 @@ export class AuthService {
    */
   async loginByWechat(code: string, registerWhenNotExist: boolean = true) {
     // const result = await this.wechatAuthService.getWechatOAuth(code);
-    const result = await this.wechatAuthService.getWxPhone(code);
+    const result = {
+      openid: Math.random().toString().slice(2, 10),
+      unionid: Math.random().toString().slice(2, 10),
+      session_key: '1',
+      errcode: 0,
+      errmsg: '',
+    };
     console.log('[ rock-result ]', result);
     const { openid, unionid } = result;
     const user = await this.userService.findOneByWechat({ openid, unionid });
     console.log('[ rock-user ]', user);
     if (user) {
       if (this.userService.IsEnable(user)) {
-        return user;
+        return await this.formatUser(user);
       } else {
         throw new AuthDisableException();
       }
     } else if (registerWhenNotExist) {
-      return await this.userService.createUserByWechat(result);
+      const regUser = await this.userService.createUserByWechat(result);
+      return await this.formatUser(regUser);
     } else {
       throw new AuthValidFailException();
     }
@@ -137,5 +135,19 @@ export class AuthService {
 
     const res = await this.userService.create({ username, password });
     return res;
+  }
+
+  /**
+   * 添加token,格式化登陆成功返回的数据
+   * @param user 用户信息
+   * @returns
+   */
+  async formatUser(user: User) {
+    const userData: User = { ...user, password: '' };
+    const token = await this.jwtService.signAsync(userData);
+    return {
+      user: userData,
+      token,
+    };
   }
 }

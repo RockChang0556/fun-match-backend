@@ -36,7 +36,6 @@ export class WechatAuthService {
         },
       }),
     );
-    console.log('[ rock- getAccessToken]', data);
     if (isWechatOAuthFailure(data)) {
       throw new WechatException({ errcode: data.errcode });
     }
@@ -69,7 +68,7 @@ export class WechatAuthService {
   }
 
   /**
-   * 获取微信用户手机号
+   * 获取微信用户手机号, 需企业小程序, 个人小程序不支持
    * @param code getPhoneNumber返回的 code
    * @returns
    * - https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html
@@ -94,20 +93,20 @@ export class WechatAuthService {
    * @param openid
    * @returns
    */
-  async getWxInfo(openid: string): Promise<IRGetWxInfo> {
-    const { data } = await lastValueFrom(
-      this.httpService.get<IRGetWxInfo>('https://api.weixin.qq.com/sns/userinfo', {
-        params: {
-          access_token: (await this.getAccessToken()).access_token,
-          openai: openid,
-        },
-      }),
-    );
+  // async getWxInfo(openid: string): Promise<IRGetWxInfo> {
+  //   const { data } = await lastValueFrom(
+  //     this.httpService.get<IRGetWxInfo>('https://api.weixin.qq.com/sns/userinfo', {
+  //       params: {
+  //         access_token: (await this.getAccessToken()).access_token,
+  //         openai: openid,
+  //       },
+  //     }),
+  //   );
 
-    console.log('[ rock-getWxInfo ]', data);
-    if (isWechatOAuthFailure(data)) {
-      throw new WechatException({ errcode: data.errcode });
-    }
-    return data;
-  }
+  //   console.log('[ rock-getWxInfo ]', data);
+  //   if (isWechatOAuthFailure(data)) {
+  //     throw new WechatException({ errcode: data.errcode });
+  //   }
+  //   return data;
+  // }
 }

@@ -4,8 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigEnum } from '@/constants/enum/config.enum';
 import { JwtStrategy } from '@/guards/jwt.strategy';
-import { PhoneStrategy } from '@/guards/phone.strategy';
-import { WechatStrategy } from '@/guards/wechat.strategy';
 import { VerifyCodeModule } from '@/modules/verify-code/verify-code.module';
 import { UserModule } from '../user/user.module';
 import { WechatAuthModule } from './wechat-auth/wechat-auth.module';
@@ -30,6 +28,6 @@ import { AuthService } from './auth.service';
     }), // 使用异步方法导入jwt模块
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, WechatStrategy, PhoneStrategy],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

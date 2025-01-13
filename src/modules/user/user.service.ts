@@ -99,16 +99,16 @@ export class UserService {
    */
   async createUserByWechat(wxOauth: IWxJscode2session): Promise<User> {
     console.log('[ rock-wxOauth ]', wxOauth);
-    const userInfo = await this.wechatAuthService.getWxInfo(wxOauth.openid);
+    // const userInfo = await this.wechatAuthService.getWxInfo(wxOauth.openid);
     // const userInfo = await this.wechatAuthService.getWxPhone(wxOauth.openid);
-    console.log('[ rock-userInfo ]', userInfo);
     const password = await bcrypt.hash('123456', 10);
     // 创建用户
     const userTemp = this.userRepository.create({
-      username: userInfo.nickname,
-      openid: userInfo.openid,
+      username: wxOauth.openid,
+      nickname: '微信用户',
+      openid: wxOauth.openid,
       password,
-      unionid: userInfo.unionid,
+      unionid: wxOauth.unionid,
     });
     const res = await this.userRepository.save(userTemp);
     return res;

@@ -26,7 +26,7 @@ export interface IWxJscode2session {
   /** 用户在开放平台的唯一标识符，若当前小程序已绑定到微信开放平台账号下会返回，详见 UnionID 机制说明。 */
   unionid: string;
   errcode: number;
-  errmsg: string;
+  errmsg?: string;
 }
 
 export interface IRGetWxInfo {
