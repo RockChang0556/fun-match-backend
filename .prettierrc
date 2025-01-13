@@ -14,7 +14,7 @@
   "requirePragma": false,
   "proseWrap": "preserve",
   "htmlWhitespaceSensitivity": "css",
-  "endOfLine": "crlf",
+  "endOfLine": "lf",
   "rangeStart": 0,
   "embeddedLanguageFormatting": "auto"
 }
