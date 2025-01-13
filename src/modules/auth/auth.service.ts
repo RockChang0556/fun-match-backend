@@ -93,14 +93,14 @@ export class AuthService {
    * @param {boolean} registerWhenNotExist 是否在用户不存在时注册
    */
   async loginByWechat(code: string, registerWhenNotExist: boolean = true) {
-    // const result = await this.wechatAuthService.getWechatOAuth(code);
-    const result = {
-      openid: Math.random().toString().slice(2, 10),
-      unionid: Math.random().toString().slice(2, 10),
-      session_key: '1',
-      errcode: 0,
-      errmsg: '',
-    };
+    const result = await this.wechatAuthService.getWechatOAuth(code);
+    // const result = {
+    //   openid: Math.random().toString().slice(2, 10),
+    //   unionid: Math.random().toString().slice(2, 10),
+    //   session_key: '1',
+    //   errcode: 0,
+    //   errmsg: '',
+    // };
     console.log('[ rock-result ]', result);
     const { openid, unionid } = result;
     const user = await this.userService.findOneByWechat({ openid, unionid });

@@ -44,8 +44,8 @@ export class UserController {
   @Post('create')
   @ApiBody({ type: CreateUserDto })
   @ApiOperation({ summary: '创建用户' })
-  addUser(@Body() userDto: CreateUserDto, @Req() req: Request) {
-    return this.userService.create(userDto, req['user'] as User);
+  addUser(@Body() userDto: CreateUserDto) {
+    return this.userService.create(userDto);
   }
 
   @Patch('update')
