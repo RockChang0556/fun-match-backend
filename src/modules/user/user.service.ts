@@ -30,8 +30,7 @@ export class UserService {
    * @param {User} userLogin 登录用户信息
    * @return 创建结果
    */
-  async create(userDto: Partial<CreateUserDto>, userLogin?: User) {
-    console.log('[ rock-userLogin ]', userLogin);
+  async create(userDto: Partial<CreateUserDto>) {
     // 判断用户是否有权限创建新用户
     // if (userLogin?.userType !== 0 && userLogin?.userType !== 1) {
     //   // 登录用户既不是超级管理员，又不是管理员，无法创建任何用户
@@ -44,7 +43,6 @@ export class UserService {
     // 判断要创建的用户账户是否存在
     const createUser = await this.find({ username: userDto.username });
     if (createUser) {
-      // 用户账户存在
       throw new BadRequestException('用户已存在');
     }
 
@@ -203,12 +201,21 @@ export class UserService {
     }
 
     // 判断用户是否有权限更新用户信息
-    if (userLogin.userType !== 0 && userLogin.userType !== 1) {
-      // 登录用户既不是超级管理员，又不是管理员，无法更新用户信息
-      throw new ForbiddenException('你没有权限更新该用户的信息');
-    } else if (userLogin.userType !== 0 && userLogin.userType >= userTemp.userType) {
+    // if (userLogin.userType !== 0 && userLogin.userType !== 1) {
+    //   // 登录用户既不是超级管理员，又不是管理员，无法更新用户信息
+    //   throw new ForbiddenException('你没有权限更新该用户的信息');
+    // } else if (userLogin.userType !== 0 && userLogin.userType >= userTemp.userType) {
+    //   throw new ForbiddenException('你没有权限更新该用户的信息');
+    // }
+
+    // 只能更新自己的
+    if (id !== userLogin.id) {
       throw new ForbiddenException('你没有权限更新该用户的信息');
     }
+
+    /** 允许用户自己更新的字段 */
+    const canUpdateMap = ['nickname', 'password', 'avatar', 'sex', 'phone', 'email', 'description'];
+    const updateUserData = Object.fromEntries(canUpdateMap.map(k => [k, updateUserDto[k]]));
 
     // 判断用户角色是否存在
     if (updateUserDto.roleIds) {
@@ -218,7 +225,7 @@ export class UserService {
     }
 
     // 联合模型更新，需要使用save方法或者queryBuilder
-    const newUserTemp = this.userRepository.merge(userTemp, updateUserDto);
+    const newUserTemp = this.userRepository.merge(userTemp, updateUserData);
 
     return this.userRepository.save(newUserTemp);
   }
