@@ -21,6 +21,7 @@ export class PermissionGuard implements CanActivate {
         context.getHandler(),
       ]) || [];
 
+    console.log('[ rock-user ]', user, permissionList);
     if (permissionList.length === 0) return true;
 
     return this.userServicese.verfiyAutorify(user.id, permissionList);

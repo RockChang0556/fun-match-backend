@@ -13,18 +13,6 @@ export function isWechatOAuthFailure(response: any): response is IWechatOAuthFai
 export class WechatAuthService {
   constructor(private readonly httpService: HttpService) {}
 
-  getAuthUrl(redirectUrl: string, state: string, scope: string = 'snsapi_userinfo'): string {
-    const appId = process.env.WECHAT_APP_ID;
-    const url = new URL('https://open.weixin.qq.com/connect/oauth2/authorize');
-    url.searchParams.set('response_type', 'code');
-    url.searchParams.set('appid', appId);
-    url.searchParams.set('redirect_uri', redirectUrl);
-    url.searchParams.set('scope', scope);
-    state && url.searchParams.set('state', state);
-    url.hash = 'wechat_redirect';
-    return url.href;
-  }
-
   /** 获取微信 token */
   async getAccessToken(): Promise<{ access_token: string; expires_in: number }> {
     const { data } = await lastValueFrom(

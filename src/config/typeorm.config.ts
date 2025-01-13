@@ -9,8 +9,6 @@ const dbConfig = config.get('db');
 // 获取实体类
 const entities = [resolve('dist') + '/**/*.entity{.ts,.js}']; // 生产环境这里一定要注意是dist目录，否则会报连接异常
 
-console.log('[ rock- ]', dbConfig.timezone);
-
 export default registerAs(ConfigEnum.DB_CONFIG, () => ({
   type: dbConfig.type, // 数据库类型
   host: dbConfig.host, // 主机

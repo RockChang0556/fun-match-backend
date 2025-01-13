@@ -7,6 +7,7 @@ import {
   LoggerService,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { CustomException } from '@/exception/custom-exception';
 import { timestampFormat } from '@/utils/format';
 
 // 全局异常过滤器处理
@@ -23,20 +24,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>(); // 获取请求对象
     const status =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR; // 异常状态码
-    const errResBody =
+    const errResBody: any =
       typeof exception.getResponse === 'function' ? exception.getResponse() : exception; // string|object ts无法知道object的成员
     const message =
       typeof errResBody === 'object'
-        ? { message: (errResBody as any).message }
+        ? { message: errResBody.message }
         : { message: errResBody || exception.message || '服务器异常' }; // 错误信息
 
-    const resBody = {
-      code: status, // 系统错误状态
-      data: null, // 错误消息内容体(争取和拦截器中定义的响应体一样)
-      timestamp: timestampFormat(),
-      ...message,
-    };
-
+    const resBody =
+      exception instanceof CustomException
+        ? { ...errResBody, timestamp: timestampFormat() }
+        : {
+            code: status, // 系统错误状态
+            data: null, // 错误消息内容体(争取和拦截器中定义的响应体一样)
+            timestamp: timestampFormat(),
+            ...message,
+          };
     if (status === 404) {
       this.appLoggerService.warn(`${message.message} ${request.ip}`, 'ExceptionResponse');
     } else {

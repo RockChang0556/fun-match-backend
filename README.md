@@ -74,7 +74,6 @@
     - 评论为树形结构(继承自树形基类)
   - 点赞模块(Like)
 - 插件/配置
-  - 初始生成默认超管用密(仅开发环境)
   - 默认启动swagger文档(仅开发环境)
   - 全局验证器(ValidationPipe)
   - FormData处理(fastifyMultipart)
