@@ -62,7 +62,14 @@ export class AuthService {
    * @param registerWhenNotExist 是否在用户不存在时注册
    * @returns 登录结果
    */
-  async loginByPhone(phone: string, code: string, registerWhenNotExist: boolean = true) {
+  async loginByPhone(
+    phone: string,
+    code: string,
+    registerWhenNotExist: boolean = true,
+  ): Promise<{
+    user: User;
+    token: string;
+  }> {
     const valid = await this.verifyCodeService.verify({
       phone,
       type: EVerifyCodeType.LOGIN,

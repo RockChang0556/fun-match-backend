@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 import { RegPhone } from '@/constants/const';
+import { User } from '@/entities/user.entity';
 
 export class AuthUserDto {
   @ApiProperty({ description: '用户名', required: true })
@@ -32,4 +33,11 @@ export class AuthWechatUserDto {
   @IsString()
   @IsNotEmpty({ message: 'code不能为空' })
   code: string;
+}
+
+export class RLoginUserDto {
+  /** 用户信息 */
+  user: User;
+  /** 登录token */
+  token: string;
 }

@@ -77,18 +77,16 @@ export class UserService {
 
     if (samePhoneUser) {
       throw new CustomException('手机号已存在');
-    } else {
-      // const encrypted = CryptoUtil.encryptNoIV(phone);
-      const encodePhone = phone;
-      const password = await bcrypt.hash(encodePhone, 10);
-      const user = this.userRepository.create({
-        phone: encodePhone,
-        username: encodePhone,
-        password,
-      });
-      await this.userRepository.save(user);
-      return user;
     }
+    // const encrypted = CryptoUtil.encryptNoIV(phone);
+    const encodePhone = phone;
+    const password = await bcrypt.hash(encodePhone, 10);
+    const user = this.userRepository.create({
+      phone: encodePhone,
+      username: encodePhone,
+      password,
+    });
+    return await this.userRepository.save(user);
   }
 
   /**
@@ -108,8 +106,7 @@ export class UserService {
       password,
       unionid: wxOauth.unionid,
     });
-    const res = await this.userRepository.save(userTemp);
-    return res;
+    return await this.userRepository.save(userTemp);
   }
 
   /**
@@ -256,7 +253,7 @@ export class UserService {
 
     // affected 删除的行数
     if (affected > 0) {
-      return 'success';
+      return true;
     } else {
       throw new ForbiddenException('删除失败，该用户不存在或者无法删除');
     }

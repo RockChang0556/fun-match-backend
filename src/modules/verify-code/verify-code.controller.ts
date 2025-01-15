@@ -12,13 +12,13 @@ export class VerifyCodeController {
   @Post('send')
   @ApiOperation({ summary: '发送验证码' })
   @NoAuth('ALL')
-  async sendCode(@Body() createDto: VerifyCodeCreateDto) {
-    return await this.verifyCodeService.create(createDto);
+  sendCode(@Body() createDto: VerifyCodeCreateDto) {
+    return this.verifyCodeService.create(createDto);
   }
   @Post('verify')
   @ApiOperation({ summary: '校验验证码' })
   @NoAuth('ALL')
-  async verifyCode(@Body() verifyDto: VerifyCodeValidDto) {
-    return await this.verifyCodeService.verify(verifyDto);
+  verifyCode(@Body() verifyDto: VerifyCodeValidDto) {
+    return this.verifyCodeService.verify(verifyDto);
   }
 }

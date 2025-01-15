@@ -34,7 +34,7 @@ export class UpdateUserDto {
   @IsOptional()
   nickname: string;
 
-  @ApiProperty({ description: '性别', required: false })
+  @ApiProperty({ description: '性别,男性为1,女性为2,未知为3' })
   @IsIn([1, 2, 3], { message: '性别不合法' })
   @IsNumber()
   @IsOptional()
@@ -50,7 +50,11 @@ export class UpdateUserDto {
   @IsOptional()
   email: string;
 
-  @ApiProperty({ description: '用户类型', default: 2, required: false })
+  @ApiProperty({
+    description: '用户类型：0超级管理员,1管理员,2普通用户',
+    default: 2,
+    required: false,
+  })
   @IsIn([0, 1, 2], { message: '用户类型不合法' })
   @IsNumber()
   @IsOptional()

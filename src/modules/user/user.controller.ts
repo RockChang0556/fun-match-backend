@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs
 import { Request } from 'express';
 import { User } from '@/entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
-import { GetUserDto } from './dto/getUser.dto';
+import { GetUserDto, RGetAllDto, RGetUserRolesDto } from './dto/getUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UserService } from './user.service';
 
@@ -25,7 +25,7 @@ export class UserController {
 
   @Post('getAll')
   @ApiOperation({ summary: '获取所有用户信息' })
-  getUsers(@Body() query: GetUserDto) {
+  getUsers(@Body() query: GetUserDto): Promise<RGetUserRolesDto> {
     return this.userService.findAll(query);
   }
 
@@ -37,28 +37,28 @@ export class UserController {
     type: 'number',
   })
   @ApiOperation({ summary: '获取用户角色信息' })
-  getUserRoleList(@Query('id', ParseIntPipe) id: number) {
+  getUserRoleList(@Query('id', ParseIntPipe) id: number): Promise<RGetAllDto> {
     return this.userService.getUserRoles(id);
   }
 
   @Post('create')
   @ApiBody({ type: CreateUserDto })
   @ApiOperation({ summary: '创建用户' })
-  addUser(@Body() userDto: CreateUserDto) {
+  addUser(@Body() userDto: CreateUserDto): Promise<User> {
     return this.userService.create(userDto);
   }
 
   @Patch('update')
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({ summary: '更新用户' })
-  updateUser(@Body() userDto: UpdateUserDto, @Req() req: Request) {
+  updateUser(@Body() userDto: UpdateUserDto, @Req() req: Request): Promise<User> {
     return this.userService.update(userDto, req['user'] as User);
   }
 
   @Delete('delete')
   @ApiQuery({ name: 'id', description: '要删除的用户的id', required: true, type: 'number' })
   @ApiOperation({ summary: '删除用户' })
-  removeUser(@Query('id', ParseIntPipe) id: number, @Req() req: Request) {
+  removeUser(@Query('id', ParseIntPipe) id: number, @Req() req: Request): Promise<boolean> {
     const userInfo = req['user'] as User;
     return this.userService.remove(id, userInfo);
   }

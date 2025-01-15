@@ -19,7 +19,7 @@ export class VerifyCodeService {
   // 验证码发送间隔时间
   private limitInterval = 1 * 60 * 1000;
 
-  async create(data: VerifyCodeCreateDto): Promise<void> {
+  async create(data: VerifyCodeCreateDto) {
     const { phone, type } = data;
     if (!phone || !type) {
       throw new CustomException('手机号不能为空');
@@ -47,7 +47,7 @@ export class VerifyCodeService {
       type,
       phone: encryptedPhone,
     });
-    await this.verifyCodeRepository.save(verifyCode);
+    return this.verifyCodeRepository.save(verifyCode);
   }
 
   async verify(data: VerifyCodeValidDto): Promise<boolean> {
