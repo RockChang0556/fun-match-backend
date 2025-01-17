@@ -22,4 +22,4 @@ CMD ['pwd']
 CMD ['ls']
 
 # 指定容器启动时执行的命令
-CMD ["node", "/usr/share/backend/dist/main"]
+# CMD ["node", "/usr/share/backend/dist/main"]
