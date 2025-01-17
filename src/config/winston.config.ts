@@ -14,7 +14,7 @@ const winstonLevel = {
 };
 
 // 格式化为字符串
-const myFormat = winston.format.printf(({ result }) => result);
+const myFormat = winston.format.printf(({ result }) => result + '');
 
 // 日志格式化
 const logFormat = winston.format((opt, bool) => {
