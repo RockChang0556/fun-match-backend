@@ -9,10 +9,10 @@ COPY package*.json ./
 COPY . .
 
 # 安装依赖
-RUN pnpm install
+RUN npm install
 
 # 构建项目
-RUN pnpm run build
+RUN npm run build
 
 # 指定容器启动时执行的命令
 CMD ["node", "dist/main"]
