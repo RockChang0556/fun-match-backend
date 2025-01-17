@@ -35,13 +35,13 @@ jobs:
       - name: Show Dir
         run: ls
 
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
+      - name: Build and push Docker image
         run:
           | # 使用 上一步写的 Dockerfile 构建镜像并发布到私有仓库； 发布完成可以去 https://github.com/MrGaoGang?tab=packages 查看
           docker build . --file Dockerfile --tag ghcr.io/rockchang0556/nestjsbackend:latest
