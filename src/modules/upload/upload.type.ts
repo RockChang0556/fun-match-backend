@@ -50,15 +50,26 @@ export enum EOssType {
 
 /** 文件存储文件夹 */
 export enum EFolder {
-  ROOT = '', // 根目录
-  AVATAR = 'avatar', // 用户头像
-  BANNER = 'banner', // Banner
-  ICON = 'icon', // 图标
-  CONTENT = 'content', // 内容，富文本
-  USERCONTENT = 'usercontent', // 用户内容
-  VIDEO = 'video', // 视频
-  FILE = 'file', // 文件
-  AUDIO = 'audio', // 音频
-  OTHER = 'other', // 其他
+  /** 根目录 */
+  ROOT = '',
+  /** 用户头像 */
+  AVATAR = 'avatar',
+  /** Banner */
+  BANNER = 'banner',
+  /** 图标 */
+  ICON = 'icon',
+  /** 内容，富文本 */
+  CONTENT = 'content',
+  /** 用户内容 */
+  USERCONTENT = 'usercontent',
+  /** 视频 */
+  VIDEO = 'video',
+  /** 文件 */
+  FILE = 'file',
+  /** 音频 */
+  AUDIO = 'audio',
+  /** 其他 */
+  OTHER = 'other',
+  /** 素材 */
   MATERIAL = 'material',
 }

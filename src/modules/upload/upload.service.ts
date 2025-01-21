@@ -1,18 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Express } from 'express';
-import { ResizeOptions } from 'sharp';
 import { value2Enum } from '@/utils';
+import { FileUploadDto } from './dto/upload.dto';
 import { resizeImage } from './handler/image.handler';
 import { OssService, OssUploadResult } from './oss/oss.service';
 import { acceptTypes, EFolder, EOssType } from './upload.type';
-export interface UploadOption {
-  resize?: null | ResizeOptions; // 是否修改图片尺寸
-  quality?: number; // 压缩图片的质量
-  oss?: EOssType; // 上传到 oss
-  fileName?: string; // 文件名称,无需后缀
-  noRandomFileName?: boolean; // 是否随机文件名称,在fileName不存在时生效
-  folder?: EFolder; // 文件夹路径
-}
 
 @Injectable()
 export class UploadService {
@@ -20,7 +12,7 @@ export class UploadService {
 
   async upload(
     file: Express.Multer.File,
-    option: UploadOption = { quality: 80 },
+    option: FileUploadDto = { quality: 80 },
   ): Promise<OssUploadResult> {
     let fileBuff: Buffer = file.buffer;
     // 检测文件类型
@@ -67,7 +59,7 @@ export class UploadService {
 
   async uploadBatch(
     files: Express.Multer.File[],
-    option: UploadOption = null,
+    option: FileUploadDto = null,
   ): Promise<OssUploadResult[]> {
     const asyncQueue = [];
     for await (const file of files) {
