@@ -26,6 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR; // 异常状态码
     const errResBody: any =
       typeof exception.getResponse === 'function' ? exception.getResponse() : exception; // string|object ts无法知道object的成员
+
     const message =
       typeof errResBody === 'object'
         ? { message: errResBody.message }

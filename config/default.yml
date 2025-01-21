@@ -17,3 +17,10 @@ jwt:
 mp-wx:
   appid: 'wx4e02241c758c34c0'
   secret: 'd5328d606a31794bd166d3dbfd1b01fd'
+
+# oss-七牛 配置
+oss-qiniu:
+  OSS_QINIU_AK: 'HQZPutNeXgQBgg1G3hhlR_eL-EB1CWyNwoaTYkjB'
+  OSS_QINIU_SK: 'a0lGUVwkdSHuZ-29-Q6npTmTW78gi_hMuFtEU7I5'
+  OSS_QINIU_BUCKET: 'rock-qiniu-pic'
+  OSS_QINIU_DOMAIN: 'http(s)://rock-qiniu-pic.s3.cn-north-1.qiniucs.com'

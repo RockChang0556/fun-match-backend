@@ -94,7 +94,6 @@ export class UserService {
    * @param wxOauth  微信授权信息
    */
   async createUserByWechat(wxOauth: IWxJscode2session): Promise<User> {
-    console.log('[ rock-wxOauth ]', wxOauth);
     // const userInfo = await this.wechatAuthService.getWxInfo(wxOauth.openid);
     // const userInfo = await this.wechatAuthService.getWxPhone(wxOauth.openid);
     const password = await bcrypt.hash('123456', 10);

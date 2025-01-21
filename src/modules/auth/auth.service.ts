@@ -108,10 +108,8 @@ export class AuthService {
     //   errcode: 0,
     //   errmsg: '',
     // };
-    console.log('[ rock-result ]', result);
     const { openid, unionid } = result;
     const user = await this.userService.findOneByWechat({ openid, unionid });
-    console.log('[ rock-user ]', user);
     if (user) {
       if (this.userService.IsEnable(user)) {
         return await this.formatUser(user);

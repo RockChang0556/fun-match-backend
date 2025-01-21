@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, MoreThan, Repository } from 'typeorm';
@@ -22,7 +22,7 @@ export class VerifyCodeService {
   async create(data: VerifyCodeCreateDto) {
     const { phone, type } = data;
     if (!phone || !type) {
-      throw new CustomException('手机号不能为空');
+      throw new BadRequestException('手机号不能为空');
     }
     // const encryptedPhone = CryptoUtil.encryptNoIV(phone);
     const encryptedPhone = phone;
@@ -53,7 +53,7 @@ export class VerifyCodeService {
   async verify(data: VerifyCodeValidDto): Promise<boolean> {
     const { phone, type, code } = data;
     if (!phone || !code || !type) {
-      throw new CustomException('手机号或验证码不能为空');
+      throw new BadRequestException('手机号或验证码不能为空');
     }
     // const encryptedPhone = CryptoUtil.encryptNoIV(phone);
     const encryptedPhone = phone;
