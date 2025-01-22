@@ -66,6 +66,7 @@
     "js-yaml": "^4.1.0",
     "mysql2": "^3.5.2",
     "nest-winston": "^1.9.7",
+    "optional": "^0.1.4",
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",

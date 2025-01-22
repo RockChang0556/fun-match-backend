@@ -48,7 +48,7 @@ export class UserController {
     return this.userService.create(userDto);
   }
 
-  @Patch('update')
+  @Post('update')
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({ summary: '更新用户' })
   updateUser(@Body() userDto: UpdateUserDto, @Req() req: Request): Promise<User> {

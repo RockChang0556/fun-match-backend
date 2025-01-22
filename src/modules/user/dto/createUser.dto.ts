@@ -36,6 +36,11 @@ export class CreateUserDto {
   @IsOptional()
   nickname: string;
 
+  /** 头像 */
+  @IsString()
+  @IsOptional()
+  avatar: string;
+
   @ApiProperty({ description: '性别,男性为1,女性为2,未知为3' })
   @IsIn([1, 2, 3], { message: '性别不合法' })
   @IsNumber()
