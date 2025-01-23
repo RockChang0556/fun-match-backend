@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       - name: Show Dir
-        run: ls
+        run: ls ./dist
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2

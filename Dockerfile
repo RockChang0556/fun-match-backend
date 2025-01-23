@@ -22,4 +22,4 @@ COPY ./dist /app
 # CMD ['ls']
 
 # 指定容器启动时执行的命令
-# CMD ["node", "/app/main"]
+CMD ["node", "/app/main"]
