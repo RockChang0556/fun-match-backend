@@ -15,11 +15,11 @@ WORKDIR /app
 # RUN npm run build
 
 # 将产物放在/app 目录下
-ADD ./dist /app
+COPY ./dist /app
 
 # CMD ['pwd']
 
 # CMD ['ls']
 
 # 指定容器启动时执行的命令
-CMD ["node", "/app/main"]
+# CMD ["node", "/app/main"]
