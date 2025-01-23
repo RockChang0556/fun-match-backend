@@ -12,6 +12,7 @@ import { LoggersModule } from './modules/loggers/loggers.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { ResourcesModule } from './modules/resources/resources.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { UserModule } from './modules/user/user.module';
 import AppConfig from './config';
 
@@ -32,6 +33,8 @@ import AppConfig from './config';
 
     UserModule,
     AuthModule,
+    UploadModule,
+
     RolesModule,
     ResourcesModule,
     LoggersModule,

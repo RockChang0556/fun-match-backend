@@ -69,7 +69,6 @@ export class WechatAuthService {
         { data: { code } },
       ),
     );
-    console.log('[ rock-getWxPhone ]', data);
     if (isWechatOAuthFailure(data)) {
       throw new WechatException({ errcode: data.errcode });
     }

@@ -34,3 +34,10 @@ export const menuConvertToTree = (menuList: menuListType[], pId: number | null =
 
   return tree;
 };
+
+export function value2Enum<T>(enumObj: T, value: any): T[keyof T] | null {
+  if (Object.values(enumObj).includes(value)) {
+    return value as T[keyof T];
+  }
+  return null;
+}

@@ -1,27 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsEmail,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Length,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsIn, IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateUserDto {
-  @ApiProperty({ description: '用户id', required: true })
-  @IsNumber()
-  @IsNotEmpty({ message: '用户id不能为空' })
-  id: number;
+  // @ApiProperty({ description: '用户id', required: true })
+  // @IsNumber()
+  // @IsNotEmpty({ message: '用户id不能为空' })
+  // id: number;
 
-  @ApiProperty({ description: '用户名', required: false })
-  @IsString()
-  @MinLength(4, { message: '用户名至少需要四位' })
-  @IsOptional()
-  username: string;
+  // @ApiProperty({ description: '用户名', required: false })
+  // @IsString()
+  // @MinLength(4, { message: '用户名至少需要四位' })
+  // @IsOptional()
+  // username: string;
 
   @ApiProperty({ description: '密码', required: false })
   @IsString()
@@ -33,6 +23,11 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   nickname: string;
+
+  /** 头像 */
+  @IsString()
+  @IsOptional()
+  avatar: string;
 
   @ApiProperty({ description: '性别,男性为1,女性为2,未知为3' })
   @IsIn([1, 2, 3], { message: '性别不合法' })
@@ -50,20 +45,20 @@ export class UpdateUserDto {
   @IsOptional()
   email: string;
 
-  @ApiProperty({
-    description: '用户类型：0超级管理员,1管理员,2普通用户',
-    default: 2,
-    required: false,
-  })
-  @IsIn([0, 1, 2], { message: '用户类型不合法' })
-  @IsNumber()
-  @IsOptional()
-  userType: number;
+  // @ApiProperty({
+  //   description: '用户类型：0超级管理员,1管理员,2普通用户',
+  //   default: 2,
+  //   required: false,
+  // })
+  // @IsIn([0, 1, 2], { message: '用户类型不合法' })
+  // @IsNumber()
+  // @IsOptional()
+  // userType: number;
 
-  @ApiProperty({ description: '用户状态', required: false })
-  @IsBoolean()
-  @IsOptional()
-  status: boolean;
+  // @ApiProperty({ description: '用户状态', required: false })
+  // @IsBoolean()
+  // @IsOptional()
+  // status: boolean;
 
   @ApiProperty({ description: '用户描述', required: false })
   @IsString()

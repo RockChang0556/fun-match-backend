@@ -94,7 +94,6 @@ export class UserService {
    * @param wxOauth  微信授权信息
    */
   async createUserByWechat(wxOauth: IWxJscode2session): Promise<User> {
-    console.log('[ rock-wxOauth ]', wxOauth);
     // const userInfo = await this.wechatAuthService.getWxInfo(wxOauth.openid);
     // const userInfo = await this.wechatAuthService.getWxPhone(wxOauth.openid);
     const password = await bcrypt.hash('123456', 10);
@@ -189,7 +188,7 @@ export class UserService {
    */
   async update(updateUserDto: Partial<UpdateUserDto>, userLogin: User) {
     // 获取要更新的用户id
-    const id = updateUserDto.id;
+    const id = userLogin.id;
 
     // 查询对应的用户信息
     const userTemp = await this.find({ id });
@@ -206,9 +205,9 @@ export class UserService {
     // }
 
     // 只能更新自己的
-    if (id !== userLogin.id) {
-      throw new ForbiddenException('你没有权限更新该用户的信息');
-    }
+    // if (id !== userLogin.id) {
+    //   throw new ForbiddenException('你没有权限更新该用户的信息');
+    // }
 
     /** 允许用户自己更新的字段 */
     const canUpdateMap = ['nickname', 'password', 'avatar', 'sex', 'phone', 'email', 'description'];
