@@ -1,11 +1,11 @@
 // import { ApiProperty } from '@nestjs/swagger';
 // import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
-import { ResizeOptions } from 'sharp';
+// import { ResizeOptions } from 'sharp';
 import { EFolder, EOssType } from '../upload.type';
 
 export class FileUploadDto {
   /** 是否修改图片尺寸 */
-  resize?: null | ResizeOptions;
+  resize?: any;
   /** 压缩图片的质量 */
   quality?: number;
   /** 上传到 oss */

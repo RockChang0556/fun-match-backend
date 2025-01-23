@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import type { Express } from 'express';
 import { value2Enum } from '@/utils';
 import { FileUploadDto } from './dto/upload.dto';
-import { resizeImage } from './handler/image.handler';
+// import { resizeImage } from './handler/image.handler';
 import { OssService, OssUploadResult } from './oss/oss.service';
 import { acceptTypes, EFolder, EOssType } from './upload.type';
 
@@ -14,7 +14,7 @@ export class UploadService {
     file: Express.Multer.File,
     option: FileUploadDto = { quality: 80 },
   ): Promise<OssUploadResult> {
-    let fileBuff: Buffer = file.buffer;
+    const fileBuff: Buffer = file.buffer;
     // 检测文件类型
     if (!acceptTypes.includes(file.mimetype)) {
       throw new BadRequestException('不支持的文件类型');
@@ -25,9 +25,9 @@ export class UploadService {
       throw new NotFoundException('文件夹路径错误');
     }
     // 压缩图片
-    if (file.mimetype.startsWith('image/') && option && (option.resize || option.quality)) {
-      fileBuff = await resizeImage(fileBuff, option.resize, option.quality);
-    }
+    // if (file.mimetype.startsWith('image/') && option && (option.resize || option.quality)) {
+    //   fileBuff = await resizeImage(fileBuff, option.resize, option.quality);
+    // }
 
     // 处理文件名
     const sourceFileName = file.originalname.slice(0, file.originalname.lastIndexOf('.'));
