@@ -19,7 +19,7 @@ ADD ./dist /usr/share/backend
 
 CMD ['pwd']
 
-CMD ['ls']
+# CMD ['ls']
 
 # 指定容器启动时执行的命令
 # CMD ["node", "/usr/share/backend/dist/main"]
