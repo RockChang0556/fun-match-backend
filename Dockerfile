@@ -9,7 +9,7 @@ WORKDIR /app
 # COPY . .
 
 # # 安装依赖
-# RUN npm install
+RUN npm install --omit=dev
 
 # # 构建项目
 # RUN npm run build
