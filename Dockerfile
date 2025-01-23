@@ -9,13 +9,14 @@ WORKDIR /app
 # COPY . .
 
 # # 安装依赖
-RUN npm install --omit=dev
+# RUN npm install
 
 # # 构建项目
 # RUN npm run build
 
 # 将产物放在/app 目录下
 COPY ./dist /app
+COPY ./node_modules /app/node_modules
 
 # CMD ['pwd']
 
