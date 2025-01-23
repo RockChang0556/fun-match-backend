@@ -6,17 +6,18 @@ WORKDIR /app
 
 # 复制项目文件到工作目录
 # COPY package*.json ./
-# COPY . .
+COPY . .
 
 # # 安装依赖
-# RUN npm install
+RUN npm install
 
 # # 构建项目
-# RUN npm run build
+RUN npm run build
 
 # 将产物放在/app 目录下
 COPY ./dist /app
 COPY ./node_modules /app/node_modules
+# COPY ./config /app/config
 
 # CMD ['pwd']
 
