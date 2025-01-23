@@ -14,12 +14,12 @@ WORKDIR /app
 # # 构建项目
 # RUN npm run build
 
-# 将产物放在/usr/share/backend 目录下
-ADD ./dist /usr/share/backend
+# 将产物放在/app 目录下
+ADD ./dist /app
 
-CMD ['pwd']
+# CMD ['pwd']
 
 # CMD ['ls']
 
 # 指定容器启动时执行的命令
-# CMD ["node", "/usr/share/backend/dist/main"]
+CMD ["node", "/app/main"]
