@@ -36,11 +36,11 @@ WORKDIR /app
 # 复制 package.json 和 package-lock.json 到工作目录
 COPY package.json  ./
 
+RUN rm -rf /app/node_modules
 # 安装项目依赖
 RUN npm install
 
 # 复制项目源代码到工作目录
-RUN rm -rf /app/node_modules
 COPY . .
 
 # 构建项目（生成 dist 文件夹）
