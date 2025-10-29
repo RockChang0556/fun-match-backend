@@ -8,6 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "cross-env NODE_ENV=production nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "fix:eol": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" --end-of-line lf",
     "start:dev": "nest start",
     "start": "cross-env NODE_ENV=development nest start --watch",
@@ -40,7 +41,7 @@
       "prettier --write"
     ],
     "{!(package)*.json,*.code-snippets,.!(browserslist)*rc}": [
-      "prettier --write--parser json"
+      "prettier --write --parser json"
     ],
     "package.json": [
       "prettier --write"
