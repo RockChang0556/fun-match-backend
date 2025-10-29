@@ -8,7 +8,7 @@ export default {
   install: (app: NestExpressApplication) => {
     const options = new DocumentBuilder()
       .setTitle('畅搭配')
-      .setDescription('畅搭配 接口文档 https://github.com/RockChang0556/fun-match-backend')
+      .setDescription('畅搭配 接口文档 https://gitee.com/fun-match/fun-match-backend')
       .setVersion('v0.0.1')
       .addBearerAuth()
       .build();

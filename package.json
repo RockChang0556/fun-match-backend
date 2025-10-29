@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "cross-env NODE_ENV=production nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "fix:eol": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" --end-of-line lf",
     "start:dev": "nest start",
     "start": "cross-env NODE_ENV=development nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RockChang0556/fun-match-backend.git"
+    "url": "git+https://gitee.com/fun-match/fun-match-backend.git"
   },
   "keywords": [
     "nest",
@@ -31,9 +31,9 @@
     "cms"
   ],
   "bugs": {
-    "url": "https://github.com/RockChang0556/fun-match-backend/issues"
+    "url": "https://gitee.com/fun-match/fun-match-backend/issues"
   },
-  "homepage": "https://github.com/RockChang0556/fun-match-backend#readme",
+  "homepage": "https://gitee.com/fun-match/fun-match-backend#readme",
   "lint-staged": {
     "*.{js,ts}": [
       "eslint --fix",

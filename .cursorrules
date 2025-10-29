@@ -1,0 +1,262 @@
+# Fun Match Backend - NestJS 项目 Cursor 规则
+
+## 项目概述
+这是一个基于 NestJS + TypeScript 构建的 CMS 后端项目，使用 TypeORM 作为 ORM，MySQL 作为数据库，集成了 JWT 认证、权限管理、文件上传等功能。
+
+## 技术栈
+- **框架**: NestJS 10.x
+- **语言**: TypeScript 5.x
+- **数据库**: MySQL + TypeORM
+- **认证**: JWT + Passport
+- **验证**: class-validator + class-transformer
+- **文档**: Swagger/OpenAPI
+- **日志**: Winston
+- **文件上传**: 七牛云 OSS
+- **其他**: bcryptjs, sharp, qiniu
+
+## 代码规范
+
+### 1. 行尾符规范
+- **统一使用 LF (`\n`)** 作为行尾符，确保 Windows 和 Mac/Linux 系统兼容
+- 项目已配置 `.editorconfig` 和 `.prettierrc` 文件
+- 使用 `npx prettier --write "src/**/*.ts" --end-of-line lf` 修复行尾符问题
+
+### 2. 文件命名规范
+- **实体文件**: `*.entity.ts` (如 `user.entity.ts`)
+- **DTO 文件**: `*.dto.ts` (如 `createUser.dto.ts`)
+- **模块文件**: `*.module.ts`, `*.controller.ts`, `*.service.ts`
+- **装饰器文件**: `*.decorator.ts`
+- **枚举文件**: `*.enum.ts`
+- **接口文件**: `*.interface.ts`
+- **类型文件**: `*.type.ts`
+
+### 2. 目录结构规范
+```
+src/
+├── config/          # 配置文件
+├── constants/       # 常量定义
+├── decorators/      # 自定义装饰器
+├── entities/        # 数据库实体
+├── exception/       # 异常处理
+├── filters/         # 过滤器
+├── guards/          # 守卫
+├── interceptors/    # 拦截器
+├── modules/         # 业务模块
+├── plugins/         # 插件
+└── utils/           # 工具函数
+```
+
+### 3. 模块结构规范
+每个业务模块应包含：
+```
+modules/[module-name]/
+├── dto/                    # 数据传输对象
+│   ├── create[Module].dto.ts
+│   ├── update[Module].dto.ts
+│   └── get[Module].dto.ts
+├── [module].controller.ts  # 控制器
+├── [module].service.ts     # 服务
+├── [module].module.ts      # 模块定义
+└── [module].entity.ts      # 实体（如果独立）
+```
+
+### 4. 实体定义规范
+- 使用 TypeORM 装饰器
+- 必须添加 `comment` 字段说明
+- 使用 JSDoc 注释为 Swagger 文档
+- 时间字段使用 `@CreateDateColumn` 和 `@UpdateDateColumn`
+- 主键使用 `@PrimaryGeneratedColumn`
+
+```typescript
+@Entity()
+export class User {
+  /** 用户id */
+  @PrimaryGeneratedColumn({ comment: '用户id' })
+  id: number;
+
+  /** 用户名 */
+  @Column({ comment: '用户名', unique: true, nullable: false })
+  username: string;
+}
+```
+
+### 5. DTO 定义规范
+- 使用 `class-validator` 进行验证
+- 使用 `@ApiProperty` 为 Swagger 文档添加描述
+- 必填字段使用 `@IsNotEmpty()`
+- 可选字段使用 `@IsOptional()`
+- 添加适当的验证规则和错误消息
+
+```typescript
+export class CreateUserDto {
+  @ApiProperty({ description: '用户名', required: true })
+  @IsString()
+  @MinLength(4, { message: '用户名至少需要四位' })
+  @IsNotEmpty({ message: '用户名不能为空' })
+  username: string;
+}
+```
+
+### 6. 控制器规范
+- 使用 Swagger 装饰器添加 API 文档
+- 使用适当的 HTTP 状态码
+- 使用 DTO 进行参数验证
+- 添加权限装饰器 `@Permissions()` 或 `@NoAuth()`
+
+```typescript
+@Controller('user')
+@ApiTags('用户管理')
+export class UserController {
+  @Post()
+  @ApiOperation({ summary: '创建用户' })
+  @Permissions('user:create')
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
+  }
+}
+```
+
+### 7. 服务层规范
+- 业务逻辑封装在服务层
+- 使用依赖注入
+- 异常处理使用自定义异常
+- 数据库操作使用 Repository 模式
+
+### 8. 配置管理规范
+- 配置文件放在 `config/` 目录
+- 使用 YAML 格式
+- 环境变量通过 `ConfigService` 注入
+- 配置项使用枚举定义
+
+### 9. 异常处理规范
+- 使用自定义异常类
+- 统一异常响应格式
+- 使用 HTTP 异常过滤器
+- 记录异常日志
+
+### 10. 日志规范
+- 使用 Winston 进行日志记录
+- 不同级别日志分别记录
+- 包含请求 ID 和用户信息
+- 敏感信息不记录到日志
+
+## 开发约定
+
+### 1. 导入顺序
+```typescript
+// 1. Node.js 内置模块
+import { join } from 'path';
+
+// 2. 第三方库
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+// 3. 项目内部模块（使用 @/ 别名）
+import { User } from '@/entities/user.entity';
+import { CreateUserDto } from '@/modules/user/dto/createUser.dto';
+```
+
+### 2. 注释规范
+- 类和方法使用 JSDoc 注释
+- 复杂业务逻辑添加行内注释
+- 实体字段使用 JSDoc 注释（用于 Swagger）
+- 数据库字段使用 `comment` 属性
+
+### 3. 错误处理
+- 使用 `throw new HttpException()` 抛出 HTTP 异常
+- 自定义异常继承 `HttpException`
+- 统一异常响应格式
+- 记录错误日志
+
+### 4. 数据库操作
+- 使用 TypeORM Repository
+- 事务操作使用 `@Transaction()`
+- 查询使用 QueryBuilder 或 Repository 方法
+- 避免 N+1 查询问题
+
+### 5. 安全规范
+- 密码使用 bcryptjs 加密
+- JWT token 设置合理过期时间
+- 输入验证使用 class-validator
+- 敏感信息不在日志中记录
+
+## 代码生成建议
+
+### 1. 创建新模块时
+- 生成完整的模块结构（controller, service, module, dto）
+- 添加基础的 CRUD 操作
+- 配置 Swagger 文档
+- 添加权限控制
+
+### 2. 创建新实体时
+- 生成对应的 DTO 类
+- 添加验证规则
+- 配置 Swagger 文档
+- 生成数据库迁移文件
+
+### 3. 创建新 API 时
+- 添加 Swagger 文档
+- 配置权限控制
+- 添加参数验证
+- 处理异常情况
+
+## 性能优化建议
+
+1. **数据库查询优化**
+   - 使用索引
+   - 避免 N+1 查询
+   - 使用分页查询
+   - 合理使用缓存
+
+2. **API 响应优化**
+   - 使用响应拦截器统一格式
+   - 压缩响应数据
+   - 使用适当的 HTTP 状态码
+
+3. **文件上传优化**
+   - 限制文件大小和类型
+   - 使用 CDN 加速
+   - 异步处理大文件
+
+## 测试规范
+
+1. **单元测试**
+   - 测试覆盖率 > 80%
+   - 使用 Jest 框架
+   - 模拟外部依赖
+
+2. **集成测试**
+   - 测试 API 端点
+   - 测试数据库操作
+   - 测试认证和授权
+
+## 部署规范
+
+1. **环境配置**
+   - 开发、测试、生产环境分离
+   - 使用环境变量管理配置
+   - 敏感信息加密存储
+
+2. **Docker 化**
+   - 使用多阶段构建
+   - 优化镜像大小
+   - 健康检查配置
+
+## 注意事项
+
+1. **代码质量**
+   - 遵循 TypeScript 严格模式
+   - 使用 ESLint 和 Prettier
+   - 定期进行代码审查
+
+2. **安全性**
+   - 输入验证和清理
+   - SQL 注入防护
+   - XSS 攻击防护
+   - CSRF 防护
+
+3. **可维护性**
+   - 代码注释完整
+   - 模块职责单一
+   - 接口设计合理
+   - 文档及时更新
