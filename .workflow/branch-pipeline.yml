@@ -20,7 +20,7 @@ stages:
         displayName: Nodejs 构建
         nodeVersion: 15.12.0
         commands:
-          - npm i -g pnpm && pnpm install && rm -rf ./dist && pnpm build
+          - npm install && rm -rf ./dist && npm build
         artifacts:
           - name: BUILD_ARTIFACT
             path:
