@@ -12,14 +12,18 @@ const generateIVStr = (): { ivStr: string; ivBuff: Buffer } => {
 };
 
 const generateEncrypted = (text: string, keyBuff: Buffer, ivBuff: Buffer): string => {
-  const cipher = crypto.createCipheriv(algorithm, keyBuff, ivBuff);
+  const cipher = crypto.createCipheriv(algorithm, new Uint8Array(keyBuff), new Uint8Array(ivBuff));
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;
 };
 
 const generateDecrypted = (text: string, keyBuff: Buffer, ivBuff: Buffer): string => {
-  const decipher = crypto.createDecipheriv(algorithm, keyBuff, ivBuff);
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    new Uint8Array(keyBuff),
+    new Uint8Array(ivBuff),
+  );
   let decrypted = decipher.update(text, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;

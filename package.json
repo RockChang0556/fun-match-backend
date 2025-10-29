@@ -43,6 +43,8 @@
     "{!(package)*.json,*.code-snippets,.!(browserslist)*rc}": [
       "prettier --write --parser json"
     ],
+    "!.nvmrc": [],
+    "!.npmrc": [],
     "package.json": [
       "prettier --write"
     ],
