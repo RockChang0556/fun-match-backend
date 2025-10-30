@@ -1,89 +1,131 @@
-name: Deploy to Server
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'dev']
     paths-ignore: # 忽略一些不必要的文件
       - '.gitignore'
       - 'README.md'
       - '.vscode/**'
-    pull_request:
-      branches: ['main']
+      - 'document/**'
+      - 'logs/**'
+  pull_request:
+    branches: ['main', 'dev']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-deploy:
+  # 代码质量检查
+  quality-check:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
-        with:
-          registry: ghcr.io # 声明镜像源
-          username: ${{ github.actor }} # 当前github 用户名
-          password: ${{ secrets.HUB_GITHUB_TOKEN }} # 需要去 https://github.com/settings/tokens 生成一个 名为 token，注意此token 需要读写 packages 等权限
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '22.2.0'
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install dependencies
-        run: npm i
+        run: pnpm install --frozen-lockfile
 
-      - name: Build project
-        run: npm run build
+      - name: Run linting
+        run: pnpm run lint
 
-      - name: Show Dir
-        run: ls
+      - name: Run tests
+        run: pnpm run test
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+  # 构建和部署
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    needs: [quality-check]
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.HUB_GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
-        run:
-          | # 使用 上一步写的 Dockerfile 构建镜像并发布到私有仓库； 发布完成可以去 https://github.com/MrGaoGang?tab=packages 查看
-          docker build . --file Dockerfile --tag ghcr.io/rockchang0556/nestjs-backend:latest
-          docker push ghcr.io/rockchang0556/nestjs-backend:latest
-
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: .
-      #     file: ./Dockerfile
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_USERNAME }}/nestjs-backend:latest
-
-      # - name: Copy Docker Compose file to server
-      #   uses: appleboy/scp-action@v0.1.0
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USERNAME }}
-      #     key: ${{ secrets.SERVER_PRIVATE_KEY }}
-      #     source: 'docker-compose.yml'
-      #     target: '/home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/'
-
-      # - name: SSH to server and deploy
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USERNAME }}
-      #     key: ${{ secrets.SERVER_PRIVATE_KEY }}
-      #     script: |
-      #       cd /home/${{ secrets.SERVER_USERNAME }}/my-nestjs-app
-      #       docker-compose down
-      #       docker-compose up -d
-      - name: SSH to server and deploy
-        uses: appleboy/ssh-action@v0.1.10
+        id: build
+        uses: docker/build-push-action@v5
         with:
-          host: ${{ secrets.SERVER_HOST }} # 服务器ip地址 ; 需要去仓库的 settings/secrets/actions 去创建
-          username: ${{ secrets.SERVER_USERNAME }} # 服务器用户名称；需要去仓库的 settings/secrets/actions 去创建
-          password: ${{ secrets.SERVER_PWD }} # 服务器密码；需要去仓库的 settings/secrets/actions 去创建
-          port: ${{ secrets.SERVER_PORT }} # 服务器端口，默认22；需要去仓库的 settings/secrets/actions 去创建
-          script: | # 重启更新镜像
-            docker stop nestjs-backend
-            docker rm nestjs-backend
-            docker login -u ${{ github.actor }} -p ${{ secrets.HUB_GITHUB_TOKEN }} https://ghcr.io
-            docker pull ghcr.io/rockchang0556/nestjs-backend:latest
-            docker run -dp 11000:3000  --restart=always --name nestjs-backend ghcr.io/rockchang0556/nestjs-backend
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Copy deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PWD }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: 'docker-compose-1panel.yml,nginx.conf,deploy-1panel.sh,setup-1panel.sh'
+          target: '/home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/'
+
+      - name: Deploy to server with 1Panel
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PWD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            set -e
+
+            # 进入部署目录
+            cd /home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/
+
+            # 设置执行权限
+            chmod +x deploy-1panel.sh
+
+            # 登录到容器注册表
+            echo "${{ secrets.HUB_GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+            # 使用 1Panel 优化脚本部署
+            ./deploy-1panel.sh production latest
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 部署成功完成！"
+          else
+            echo "❌ 部署失败，请检查日志"
+          fi

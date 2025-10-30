@@ -17,6 +17,16 @@ async function bootstrap() {
   // 设置全局拦截器
   app.useGlobalInterceptors(new ResponseInterceptor());
 
+  // 添加健康检查端点
+  app.use('/health', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+    });
+  });
+
   await plugins.install(app);
 
   const port = process.env.PORT || serverConfig.port;
