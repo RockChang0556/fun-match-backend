@@ -4,13 +4,13 @@ FROM node:22-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 pnpm-lock.yaml
-COPY package*.json pnpm-lock.yaml ./
-
 # 安装 pnpm
 RUN npm install -g pnpm
 
-# 安装依赖
+# 复制 package.json 和 pnpm-lock.yaml
+COPY package*.json pnpm-lock.yaml ./
+
+# 安装所有依赖（包括 devDependencies）
 RUN pnpm install --frozen-lockfile
 
 # 复制源代码
@@ -29,18 +29,10 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
-# 复制 package.json 和 pnpm-lock.yaml
-COPY package*.json pnpm-lock.yaml ./
-
-# 安装 pnpm
-RUN npm install -g pnpm
-
-# 只安装生产依赖
-RUN pnpm install --frozen-lockfile --prod && \
-    pnpm store prune
-
-# 从构建阶段复制构建产物
+# 从构建阶段复制构建产物和依赖
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 # 复制配置文件
 COPY config ./config
