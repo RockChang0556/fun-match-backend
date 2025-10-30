@@ -46,8 +46,9 @@ jobs:
   # 构建和部署
   build-and-deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     needs: [quality-check]
+    # 如果 quality-check 被跳过，则不需要等待
+    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped')
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
       image-digest: ${{ steps.build.outputs.digest }}
