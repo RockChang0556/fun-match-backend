@@ -106,6 +106,10 @@ PORT=3000
 EOF
 
     # 启动容器，使用 1Panel 推荐配置
+  # 确保宿主机挂载目录存在并具备写权限（容器内以非 root 用户运行，需要可写）
+  mkdir -p "$(pwd)/logs" "$(pwd)/data" "$(pwd)/config"
+  chmod -R 777 "$(pwd)/logs" "$(pwd)/data" || true
+
     docker run -d \
         --name ${CONTAINER_NAME} \
         --restart=unless-stopped \
