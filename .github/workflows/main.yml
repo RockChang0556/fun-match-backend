@@ -117,7 +117,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PWD }}
           port: ${{ secrets.SERVER_PORT }}
-          source: 'docker-compose-1panel.yml,nginx.conf,deploy-1panel.sh,setup-1panel.sh'
+          source: 'docker-compose-1panel.yml,deploy-1panel.sh,config/**'
           target: '/home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/'
 
       - name: Deploy to server with 1Panel

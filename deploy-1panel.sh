@@ -114,7 +114,7 @@ EOF
         -e NODE_ENV=${ENVIRONMENT} \
         -e TZ=Asia/Shanghai \
         -v $(pwd)/logs:/app/logs \
-        -v $(pwd)/config:/app/config:ro \
+        -v $(pwd)/config:/app/config \
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
