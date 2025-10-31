@@ -27,8 +27,10 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
-          'wget -qS --spider http://127.0.0.1:3000/health || curl -sfSI http://127.0.0.1:3000/health',
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))",
         ]
       interval: 30s
       timeout: 10s

@@ -118,7 +118,7 @@ EOF
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
-        --health-cmd="sh -lc 'wget -qS --spider http://127.0.0.1:3000/health || curl -sfSI http://127.0.0.1:3000/health'" \
+        --health-cmd="node -e \"require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\"" \
         --health-interval=30s \
         --health-timeout=10s \
         --health-retries=5 \

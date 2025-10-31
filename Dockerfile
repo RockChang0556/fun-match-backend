@@ -58,9 +58,9 @@ USER nestjs
 # 暴露端口
 EXPOSE 3000
 
-# 健康检查（放宽时间窗口，使用 wget/curl 检测 HTTP 200）
+# 健康检查：使用 Node 内置 http，避免依赖 curl/wget
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-  CMD wget -qS --spider http://127.0.0.1:3000/health || curl -sfSI http://127.0.0.1:3000/health
+  CMD node -e "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
 # 启动应用
 CMD ["node", "dist/main"]
