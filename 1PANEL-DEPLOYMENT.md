@@ -66,7 +66,7 @@ GitHub Actions 将自动：
 
 ```bash
 # 将以下文件上传到服务器
-scp deploy-1panel.sh docker-compose-1panel.yml nginx.conf user@server:/home/user/nestjs-backend/
+scp deploy-1panel.sh docker-compose-1panel.yml user@server:/home/user/nestjs-backend/
 ```
 
 #### 2. 执行部署
@@ -102,6 +102,9 @@ docker login ghcr.io -u your-username
 #### 使用命令行：
 
 ```bash
+# 进入部署目录
+cd /home/user/nestjs-backend/
+
 # 快速操作
 ./quick-actions.sh start    # 启动
 ./quick-actions.sh stop     # 停止
