@@ -50,7 +50,7 @@ jobs:
     # 如果 quality-check 被跳过，则不需要等待
     if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped')
     outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
+      image-tag: ${{ steps.vars.outputs.build_tag }}
       image-digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout code
@@ -74,8 +74,14 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,format=short,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Get short SHA and build tag
+        id: vars
+        run: |
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "build_tag=${{ github.ref_name }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         id: build
@@ -85,7 +91,9 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.build_tag }}
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -120,7 +128,7 @@ jobs:
             echo "${{ secrets.HUB_GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
             # 使用 1Panel 优化脚本部署
-            ./deploy-1panel.sh production latest
+            ./deploy-1panel.sh production "${{ steps.vars.outputs.build_tag }}"
 
       - name: Notify deployment status
         if: always()
