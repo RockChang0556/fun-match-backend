@@ -58,9 +58,9 @@ USER nestjs
 # 暴露端口
 EXPOSE 3000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })"
+# 健康检查（放宽时间窗口，使用 wget/curl 检测 HTTP 200）
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+  CMD wget -qS --spider http://127.0.0.1:3000/health || curl -sfSI http://127.0.0.1:3000/health
 
 # 启动应用
 CMD ["node", "dist/main"]

@@ -118,11 +118,11 @@ EOF
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
-        --health-cmd="node -e \"require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })\"" \
+        --health-cmd="sh -lc 'wget -qS --spider http://127.0.0.1:3000/health || curl -sfSI http://127.0.0.1:3000/health'" \
         --health-interval=30s \
         --health-timeout=10s \
-        --health-retries=3 \
-        --health-start-period=40s \
+        --health-retries=5 \
+        --health-start-period=120s \
         ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
 
     log_success "容器启动完成"
@@ -141,17 +141,18 @@ health_check() {
         return 1
     fi
 
-    # 检查健康检查端点
-    local max_attempts=30
+    # 等待 Docker 健康状态变为 healthy（避免重复发 HTTP 请求）
+    local max_attempts=60
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do
-        if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })" 2>/dev/null; then
-            log_success "健康检查通过！"
+        status=$(docker inspect -f '{{.State.Health.Status}}' ${CONTAINER_NAME} 2>/dev/null || echo "unknown")
+        if [ "$status" = "healthy" ]; then
+            log_success "健康检查通过！(Docker Health: $status)"
             return 0
         fi
 
-        log_info "健康检查尝试 $attempt/$max_attempts..."
+        log_info "健康检查尝试 $attempt/$max_attempts...(当前: $status)"
         sleep 2
         ((attempt++))
     done
@@ -198,10 +199,11 @@ echo -e "\n=== 资源使用 ==="
 docker stats ${CONTAINER_NAME} --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
 echo -e "\n=== 健康检查 ==="
-if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })" 2>/dev/null; then
-    echo "✅ 健康检查通过"
+hc_status=$(docker inspect -f '{{.State.Health.Status}}' ${CONTAINER_NAME} 2>/dev/null || echo "unknown")
+if [ "$hc_status" = "healthy" ]; then
+    echo "✅ 健康检查通过 (Docker Health: $hc_status)"
 else
-    echo "❌ 健康检查失败"
+    echo "❌ 健康检查失败 (Docker Health: $hc_status)"
 fi
 
 echo -e "\n=== 最近日志 ==="
