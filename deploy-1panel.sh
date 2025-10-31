@@ -118,7 +118,7 @@ EOF
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
-        --health-cmd="node -e \"require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\"" \
+        --health-cmd="node -e \"require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))\"" \
         --health-interval=30s \
         --health-timeout=10s \
         --health-retries=5 \
@@ -147,17 +147,33 @@ health_check() {
 
     while [ $attempt -le $max_attempts ]; do
         status=$(docker inspect -f '{{.State.Health.Status}}' ${CONTAINER_NAME} 2>/dev/null || echo "unknown")
-        if [ "$status" = "healthy" ]; then
-            log_success "健康检查通过！(Docker Health: $status)"
+
+        # 直接在容器内探测一次 HTTP（不依赖 curl/wget）
+        if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))" >/dev/null 2>&1; then
+            container_http="ok"
+        else
+            container_http="fail"
+        fi
+
+        # 从宿主侧探测一次端口映射 HTTP
+        if node -e "require('http').get('http://127.0.0.1:${PORT}/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))" >/dev/null 2>&1; then
+            host_http="ok"
+        else
+            host_http="fail"
+        fi
+
+        if [ "$status" = "healthy" ] || [ "$container_http" = "ok" ]; then
+            log_success "健康检查通过！(Docker Health: $status, 容器内HTTP: $container_http, 宿主HTTP: $host_http)"
             return 0
         fi
 
-        log_info "健康检查尝试 $attempt/$max_attempts...(当前: $status)"
+        log_info "健康检查尝试 $attempt/$max_attempts...(Docker: $status, 容器内HTTP: $container_http, 宿主HTTP: $host_http)"
         sleep 2
         ((attempt++))
     done
 
-    log_error "健康检查失败"
+    log_error "健康检查失败，最近健康检查日志如下："
+    docker inspect -f '{{range .State.Health.Log}}{{.Start}} Exit={{.ExitCode}} {{json .Output}}{{"\n"}}{{end}}' ${CONTAINER_NAME} 2>/dev/null | tail -5 || true
     return 1
 }
 
