@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ['main', 'dev']
+    branches: ['main']
     paths-ignore: # 忽略一些不必要的文件
       - '.gitignore'
       - 'README.md'
@@ -10,7 +10,26 @@ on:
       - 'document/**'
       - 'logs/**'
   pull_request:
-    branches: ['main', 'dev']
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - production
+      deploy:
+        description: '是否执行部署步骤'
+        required: false
+        default: true
+        type: boolean
+      image_tag:
+        description: '自定义镜像标签（留空则使用 分支-短SHA）'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -48,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality-check]
     # 如果 quality-check 被跳过，则不需要等待
-    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped')
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped')
     outputs:
       image-tag: ${{ steps.vars.outputs.build_tag }}
       image-digest: ${{ steps.build.outputs.digest }}
@@ -82,9 +101,15 @@ jobs:
 
       - name: Get short SHA and build tag
         id: vars
+        env:
+          MANUAL_IMAGE_TAG: ${{ github.event.inputs.image_tag || '' }}
         run: |
           echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "build_tag=${{ github.ref_name }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          if [ -n "$MANUAL_IMAGE_TAG" ]; then
+            echo "build_tag=$MANUAL_IMAGE_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "build_tag=${{ github.ref_name }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build and push Docker image
         id: build
@@ -105,7 +130,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [quality-check, build-image]
-    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped') && needs.build-image.result == 'success'
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped') && needs.build-image.result == 'success' && (github.event_name != 'workflow_dispatch' || github.event.inputs.deploy == 'true')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -140,7 +165,8 @@ jobs:
             echo "${{ secrets.HUB_GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
             # 使用 1Panel 优化脚本部署
-            ./deploy-1panel.sh production "${{ needs.build-image.outputs.image-tag }}"
+            ENVIRONMENT="${{ github.event.inputs.environment || 'production' }}"
+            ./deploy-1panel.sh "$ENVIRONMENT" "${{ needs.build-image.outputs.image-tag }}"
 
       - name: Notify deployment status
         if: always()
