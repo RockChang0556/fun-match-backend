@@ -43,8 +43,8 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
-  # 构建和部署
-  build-and-deploy:
+  # 构建并推送镜像
+  build-image:
     runs-on: ubuntu-latest
     needs: [quality-check]
     # 如果 quality-check 被跳过，则不需要等待
@@ -101,6 +101,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # 部署到服务器
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [quality-check, build-image]
+    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped') && needs.build-image.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Copy deployment files to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -131,7 +140,7 @@ jobs:
             echo "${{ secrets.HUB_GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
             # 使用 1Panel 优化脚本部署
-            ./deploy-1panel.sh production "${{ steps.vars.outputs.build_tag }}"
+            ./deploy-1panel.sh production "${{ needs.build-image.outputs.image-tag }}"
 
       - name: Notify deployment status
         if: always()

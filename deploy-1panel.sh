@@ -118,7 +118,7 @@ EOF
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
-        --health-cmd="node -e \"require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })\"" \
+        --health-cmd="node -e \"require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })\"" \
         --health-interval=30s \
         --health-timeout=10s \
         --health-retries=3 \
@@ -146,7 +146,7 @@ health_check() {
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do
-        if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" 2>/dev/null; then
+        if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })" 2>/dev/null; then
             log_success "健康检查通过！"
             return 0
         fi
@@ -198,7 +198,7 @@ echo -e "\n=== 资源使用 ==="
 docker stats ${CONTAINER_NAME} --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
 echo -e "\n=== 健康检查 ==="
-if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" 2>/dev/null; then
+if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.status === 'ok' ? 0 : 1) })" 2>/dev/null; then
     echo "✅ 健康检查通过"
 else
     echo "❌ 健康检查失败"
