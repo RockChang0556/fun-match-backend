@@ -119,4 +119,4 @@
 
 ## 许可证
 
-[MIT License](https://github.com/RockChang0556/fun-match-backend/blob/master/LICENSE)
+[MIT License](https://gitee.com/fun-match/fun-match-backend/blob/master/LICENSE)

@@ -6,7 +6,7 @@ server:
 # 数据库配置
 db:
   type: 'mysql' # 数据库类型
-  port: 3306 # 端口号
+  port: 13306 # 端口号
   timezone: 'Z' # 服务器上配置的时区 - 东八时区
 
 # jwt配置

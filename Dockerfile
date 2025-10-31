@@ -1,66 +1,69 @@
-# # 基础镜像
-# FROM node:22-alpine
-
-# # 设置工作目录
-# WORKDIR /app
-
-# # 复制项目文件到工作目录
-# COPY package.json  ./
-# # 安装依赖
-# RUN npm install
-
-# COPY . ./app
-
-# CMD ['ls']
-
-# # 构建项目
-# RUN npm run build
-
-# # 将产物放在/app 目录下
-# # COPY ./dist /app
-# # COPY ./node_modules /app/node_modules
-# # COPY ./config /app/config
-
-# # CMD ['pwd']
-
-
-# # 指定容器启动时执行的命令
-# CMD ["node", "/app/dist/main"]
-
-# 使用官方 Node.js 镜像作为基础镜像
-FROM node:22-alpine AS build-stage
+# 多阶段构建 - 构建阶段
+FROM node:22-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json 到工作目录
-COPY package.json  ./
+# 安装 pnpm
+RUN npm install -g pnpm
 
-RUN rm -rf /app/node_modules
-# 安装项目依赖
-RUN npm install
+# 复制 package.json 和 pnpm-lock.yaml
+COPY package*.json pnpm-lock.yaml ./
 
-# 复制项目源代码到工作目录
+# 安装所有依赖（包括 devDependencies）
+RUN pnpm install --frozen-lockfile
+
+# 复制源代码
 COPY . .
 
-# 构建项目（生成 dist 文件夹）
-RUN npm run build
+# 构建项目（添加调试信息）
+RUN echo "开始构建项目..." && \
+    echo "检查依赖安装情况..." && \
+    pnpm list --depth=0 | head -20 && \
+    echo "检查 TypeScript 配置..." && \
+    npx tsc --version && \
+    echo "检查 NestJS CLI..." && \
+    npx nest --version && \
+    echo "开始构建..." && \
+    (NODE_ENV=production npx nest build || \
+     (echo "NestJS 构建失败，尝试直接使用 TypeScript 编译..." && \
+      npx tsc -p tsconfig.build.json)) && \
+    echo "构建完成" && \
+    ls -la dist/ && \
+    echo "检查构建产物..." && \
+    find dist -name "*.js" | head -10
 
-
-# 使用轻量级镜像作为运行环境
-FROM node:22-alpine AS production-stage
+# 生产阶段
+FROM node:22-alpine AS production
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制构建后的文件（dist 文件夹）到运行环境
-COPY --from=build-stage ./app/dist ./dist
+# 安装运行时必需工具（curl 用于健康检查）
+RUN apk add --no-cache curl
 
-# 复制依赖文件（node_modules 文件夹）到运行环境
-COPY --from=build-stage ./app/node_modules ./node_modules
+# 创建非 root 用户
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
 
-# 复制环境变量文件（如果需要）
-COPY ./config ./config
+# 从构建阶段复制构建产物和依赖
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
-# 设置容器启动命令
-CMD ["node", "dist/main.js"]
+# 复制配置文件
+COPY config ./config
+
+# 更改文件所有者
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+# 暴露端口
+EXPOSE 3000
+
+# 健康检查：使用 curl 检查 2xx
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+  CMD /usr/bin/curl -sfI http://127.0.0.1:3000/health || exit 1
+
+# 启动应用
+CMD ["node", "dist/main"]

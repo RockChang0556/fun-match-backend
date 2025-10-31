@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  nestjs-backend:
+    image: ghcr.io/rockchang0556/fun-match-backend:latest
+    container_name: nestjs-backend
+    restart: unless-stopped
+    ports:
+      - '11000:3000'
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+      - ./data:/app/data
+    networks:
+      - 1panel-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ['CMD', '/usr/bin/curl', '-sfI', 'http://127.0.0.1:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    labels:
+      - '1panel.app.name=nestjs-backend'
+      - '1panel.app.description=NestJS Backend API'
+      - '1panel.app.version=latest'
+
+networks:
+  1panel-network:
+    driver: bridge
+    labels:
+      - '1panel.network.name=1panel-network'
+
+volumes:
+  logs:
+    driver: local
+    labels:
+      - '1panel.volume.name=logs'
+  data:
+    driver: local
+    labels:
+      - '1panel.volume.name=data'

@@ -1,4 +1,4 @@
-name: Deploy to Server
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,83 +7,172 @@ on:
       - '.gitignore'
       - 'README.md'
       - '.vscode/**'
-    pull_request:
-      branches: ['main']
+      - 'document/**'
+      - 'logs/**'
+  pull_request:
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - production
+      deploy:
+        description: '是否执行部署步骤'
+        required: false
+        default: true
+        type: boolean
+      image_tag:
+        description: '自定义镜像标签（留空则使用 分支-短SHA）'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-deploy:
+  # 代码质量检查
+  quality-check:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          registry: ghcr.io # 声明镜像源
-          username: ${{ github.actor }} # 当前github 用户名
-          password: ${{ secrets.HUB_GITHUB_TOKEN }} # 需要去 https://github.com/settings/tokens 生成一个 名为 token，注意此token 需要读写 packages 等权限
+          node-version: '22'
+          cache: 'pnpm'
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22.2.0'
+      - name: Install pnpm
+        run: npm install -g pnpm
 
-      # - name: Install dependencies
-      #   run: npm i
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      # - name: Build project
-      #   run: npm run build
+      - name: Run linting
+        run: pnpm run lint
 
-      # - name: Show Dir
-      #   run: ls ./dist
+      - name: Run tests
+        run: pnpm run test
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+  # 构建并推送镜像
+  build-image:
+    runs-on: ubuntu-latest
+    needs: [quality-check]
+    # 如果 quality-check 被跳过，则不需要等待
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped')
+    outputs:
+      image-tag: ${{ steps.vars.outputs.build_tag }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
+
+      - name: Normalize image name (lowercase)
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.HUB_GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=short,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Get short SHA and build tag
+        id: vars
+        env:
+          MANUAL_IMAGE_TAG: ${{ github.event.inputs.image_tag || '' }}
+        run: |
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          if [ -n "$MANUAL_IMAGE_TAG" ]; then
+            echo "build_tag=$MANUAL_IMAGE_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "build_tag=${{ github.ref_name }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build and push Docker image
-        run:
-          | # 使用 上一步写的 Dockerfile 构建镜像并发布到私有仓库； 发布完成可以去 https://github.com/MrGaoGang?tab=packages 查看
-          docker build . --no-cache --tag ghcr.io/rockchang0556/nestjs-backend:latest
-          docker push ghcr.io/rockchang0556/nestjs-backend:latest
-
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: .
-      #     file: ./Dockerfile
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_USERNAME }}/nestjs-backend:latest
-
-      # - name: Copy Docker Compose file to server
-      #   uses: appleboy/scp-action@v0.1.0
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USERNAME }}
-      #     key: ${{ secrets.SERVER_PRIVATE_KEY }}
-      #     source: 'docker-compose.yml'
-      #     target: '/home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/'
-
-      # - name: SSH to server and deploy
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USERNAME }}
-      #     key: ${{ secrets.SERVER_PRIVATE_KEY }}
-      #     script: |
-      #       cd /home/${{ secrets.SERVER_USERNAME }}/my-nestjs-app
-      #       docker-compose down
-      #       docker-compose up -d
-      - name: SSH to server and deploy
-        uses: appleboy/ssh-action@v0.1.10
+        id: build
+        uses: docker/build-push-action@v5
         with:
-          host: ${{ secrets.SERVER_HOST }} # 服务器ip地址 ; 需要去仓库的 settings/secrets/actions 去创建
-          username: ${{ secrets.SERVER_USERNAME }} # 服务器用户名称；需要去仓库的 settings/secrets/actions 去创建
-          password: ${{ secrets.SERVER_PWD }} # 服务器密码；需要去仓库的 settings/secrets/actions 去创建
-          port: ${{ secrets.SERVER_PORT }} # 服务器端口，默认22；需要去仓库的 settings/secrets/actions 去创建
-          script: | # 重启更新镜像
-            docker stop nestjs-backend
-            docker rm nestjs-backend
-            docker login -u ${{ github.actor }} -p ${{ secrets.HUB_GITHUB_TOKEN }} https://ghcr.io
-            docker pull ghcr.io/rockchang0556/nestjs-backend:latest
-            docker run -dp 11000:3000  --restart=always --name nestjs-backend ghcr.io/rockchang0556/nestjs-backend
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.build_tag }}
+            ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 部署到服务器
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [quality-check, build-image]
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && (needs.quality-check.result == 'success' || needs.quality-check.result == 'skipped') && needs.build-image.result == 'success' && (github.event_name != 'workflow_dispatch' || github.event.inputs.deploy == 'true')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PWD }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: 'docker-compose-1panel.yml,nginx.conf,deploy-1panel.sh,setup-1panel.sh'
+          target: '/home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/'
+
+      - name: Deploy to server with 1Panel
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PWD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            set -e
+
+            # 进入部署目录
+            cd /home/${{ secrets.SERVER_USERNAME }}/nestjs-backend/
+
+            # 设置执行权限
+            chmod +x deploy-1panel.sh
+
+            # 登录到容器注册表
+            echo "${{ secrets.HUB_GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+            # 使用 1Panel 优化脚本部署
+            ENVIRONMENT="${{ github.event.inputs.environment || 'production' }}"
+            ./deploy-1panel.sh "$ENVIRONMENT" "${{ needs.build-image.outputs.image-tag }}"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 部署成功完成！"
+          else
+            echo "❌ 部署失败，请检查日志"
+          fi
