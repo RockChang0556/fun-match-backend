@@ -16,8 +16,22 @@ RUN pnpm install --frozen-lockfile
 # 复制源代码
 COPY . .
 
-# 构建项目
-RUN pnpm run build
+# 构建项目（添加调试信息）
+RUN echo "开始构建项目..." && \
+    echo "检查依赖安装情况..." && \
+    pnpm list --depth=0 | head -20 && \
+    echo "检查 TypeScript 配置..." && \
+    npx tsc --version && \
+    echo "检查 NestJS CLI..." && \
+    npx nest --version && \
+    echo "开始构建..." && \
+    (NODE_ENV=production npx nest build || \
+     (echo "NestJS 构建失败，尝试直接使用 TypeScript 编译..." && \
+      npx tsc -p tsconfig.build.json)) && \
+    echo "构建完成" && \
+    ls -la dist/ && \
+    echo "检查构建产物..." && \
+    find dist -name "*.js" | head -10
 
 # 生产阶段
 FROM node:22-alpine AS production
