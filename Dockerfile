@@ -39,6 +39,9 @@ FROM node:22-alpine AS production
 # 设置工作目录
 WORKDIR /app
 
+# 安装运行时必需工具（curl 用于健康检查）
+RUN apk add --no-cache curl
+
 # 创建非 root 用户
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
@@ -58,9 +61,9 @@ USER nestjs
 # 暴露端口
 EXPOSE 3000
 
-# 健康检查：使用 Node 内置 http，避免依赖 curl/wget
+# 健康检查：使用 curl 检查 2xx
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-  CMD node -e "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+  CMD /usr/bin/curl -sfI http://127.0.0.1:3000/health || exit 1
 
 # 启动应用
 CMD ["node", "dist/main"]

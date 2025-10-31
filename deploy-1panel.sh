@@ -118,7 +118,7 @@ EOF
         -v $(pwd)/data:/app/data \
         --memory="512m" \
         --cpus="0.5" \
-        --health-cmd="node -e \"require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))\"" \
+        --health-cmd="/usr/bin/curl -sfI http://127.0.0.1:3000/health || exit 1" \
         --health-interval=30s \
         --health-timeout=10s \
         --health-retries=5 \
@@ -148,22 +148,35 @@ health_check() {
     while [ $attempt -le $max_attempts ]; do
         status=$(docker inspect -f '{{.State.Health.Status}}' ${CONTAINER_NAME} 2>/dev/null || echo "unknown")
 
-        # 直接在容器内探测一次 HTTP（不依赖 curl/wget）
-        if docker exec ${CONTAINER_NAME} node -e "require('http').get('http://127.0.0.1:3000/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))" >/dev/null 2>&1; then
+        # 直接在容器内探测一次 HTTP（使用 curl）
+        if docker exec ${CONTAINER_NAME} /usr/bin/curl -sfI http://127.0.0.1:3000/health >/dev/null 2>&1; then
             container_http="ok"
         else
             container_http="fail"
         fi
 
-        # 从宿主侧探测一次端口映射 HTTP
-        if node -e "require('http').get('http://127.0.0.1:${PORT}/health', (res) => { process.exit(res.statusCode >= 200 && res.statusCode < 300 ? 0 : 1) }).on('error', () => process.exit(1))" >/dev/null 2>&1; then
-            host_http="ok"
+        # 从宿主侧探测一次端口映射 HTTP（优先 curl；次选 wget；都无则判为 fail 并给出提示）
+        if command -v curl >/dev/null 2>&1; then
+            if curl -sfI "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+                host_http="ok"
+            else
+                host_http="fail"
+            fi
+        elif command -v wget >/dev/null 2>&1; then
+            if wget -qS --spider "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+                host_http="ok"
+            else
+                host_http="fail"
+            fi
         else
+            if [ $attempt -eq 1 ]; then
+                log_warning "宿主机未安装 curl 或 wget，宿主侧连通性校验将判为失败"
+            fi
             host_http="fail"
         fi
 
-        if [ "$status" = "healthy" ] || [ "$container_http" = "ok" ]; then
-            log_success "健康检查通过！(Docker Health: $status, 容器内HTTP: $container_http, 宿主HTTP: $host_http)"
+        if [ "$status" = "healthy" ] || { [ "$container_http" = "ok" ] && [ "$host_http" = "ok" ]; }; then
+            log_success "健康检查通过！(Docker: $status, 容器内HTTP: $container_http, 宿主HTTP: $host_http)"
             return 0
         fi
 
